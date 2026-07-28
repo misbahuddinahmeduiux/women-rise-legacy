@@ -1,0 +1,33 @@
+-- Safe demo content. Run after 001_phase_1_schema.sql.
+insert into public.current_needs (title,slug,category,description,country,community,quantity_needed,quantity_received,urgency,partner_organization,image_url,wishlist_url,donation_instructions,status,is_published) values
+('Back-to-School Kits for 120 Students','back-to-school-kits-120-students','School supplies','Provide backpacks, notebooks, pens, uniforms, and basic learning materials for students returning to school.','Kenya','Nakuru County',120,34,'high','Community Learning Circle','https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=85',null,'Offer complete school kits or donate toward local purchasing and verified distribution.','partially_fulfilled',true),
+('Hygiene Essentials for Displaced Families','hygiene-essentials-displaced-families','Hygiene products','Urgent hygiene packages are needed for families temporarily displaced after severe flooding.','Pakistan','Southern Punjab',200,65,'urgent','Local Relief Partner','https://images.unsplash.com/photo-1593113646773-028c64a8f1b8?auto=format&fit=crop&w=1200&q=85',null,'New, sealed hygiene products only. Shipping instructions are provided after item review.','partially_fulfilled',true),
+('Warm Blankets for Winter Outreach','warm-blankets-winter-outreach','Blankets','Support a winter distribution for women-led households, older adults, and children in cold rural communities.','Jordan','Northern Communities',150,42,'normal','Women Support Cooperative','https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=85',null,'Donate new blankets or support verified local procurement.','open',true)
+on conflict (slug) do nothing;
+
+insert into public.campaigns (title,slug,campaign_type,country,summary,description,funding_goal,amount_raised,items_needed,start_date,end_date,image_url,status,is_published) values
+('Emergency Family Relief Fund','emergency-family-relief-fund','Emergency Relief','International','A flexible emergency fund for verified families facing sudden displacement, disaster, or loss of essential income.','This campaign enables the Foundation to respond quickly after private verification. Funds may support temporary shelter, food, hygiene products, transportation, school continuity, or other approved essentials.',25000,4200,'Hygiene kits, blankets, baby items, and emergency household supplies',current_date,current_date+interval '120 days','https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1200&q=85','active',true),
+('Girls Education and School Supplies','girls-education-school-supplies','Education Support','Multi-country','Help girls remain engaged in education through practical learning supplies and community-led support.','Partner schools and community organizations identify verified gaps. The campaign supports school kits, learning materials, transport assistance, and selected education projects.',18000,6900,'Backpacks, notebooks, stationery, uniforms, and learning devices',current_date,current_date+interval '180 days','https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=85','active',true)
+on conflict (slug) do nothing;
+
+insert into public.sponsor_families (public_alias,slug,family_reference_id,country,general_location,family_size,situation_summary,assistance_required,sponsorship_goal,amount_raised,monthly_support_amount,image_url,status,is_published) values
+('The Hope Family','the-hope-family','WRL-FAM-001','Ghana','Greater Accra Region',5,'A mother and four children are rebuilding stability after a sudden loss of household income. The family has completed private verification through a community partner.','School continuity, food staples, hygiene essentials, and temporary utility support.',3600,650,150,'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1200&q=85','open',true),
+('The Sunrise Family','the-sunrise-family','WRL-FAM-002','Philippines','Central Luzon',4,'A women-led household is recovering after storm damage affected housing and work equipment. Public details are intentionally limited.','Monthly essentials, school materials, and replacement tools for home-based income.',3000,400,125,'https://images.unsplash.com/photo-1609220136736-443140cffec6?auto=format&fit=crop&w=1200&q=85','open',true)
+on conflict (slug) do nothing;
+
+insert into public.impact_stories (title,country,community,story,beneficiaries_count,items_distributed,image_url,consent_confirmed,publish_date,is_published) values
+('A school term started with confidence','Kenya','Nakuru County','Through partner verification and donor support, students received complete learning kits before the new school term. Teachers reported improved attendance during the opening weeks.',86,516,'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=85',true,current_date-30,true),
+('Family hygiene distribution completed','Pakistan','Southern Punjab','Sealed hygiene supplies were purchased locally and distributed through a women-led community team. Public photography was limited to protect family privacy.',140,980,'https://images.unsplash.com/photo-1593113646773-028c64a8f1b8?auto=format&fit=crop&w=1200&q=85',true,current_date-14,true)
+on conflict (title,publish_date) do nothing;
+
+insert into public.countries_served (country,latitude,longitude,communities_count,description) values
+('Kenya',-0.023559,37.906193,3,'Education and family assistance partnerships'),
+('Pakistan',30.375321,69.345116,4,'Humanitarian relief and school support'),
+('Ghana',7.946527,-1.023194,2,'Family sponsorship and women-led outreach'),
+('Philippines',12.879721,121.774017,2,'Disaster recovery and family assistance')
+on conflict (country) do nothing;
+
+insert into public.impact_reports (report_title,reporting_period,year,country,program,people_supported,items_distributed,funds_used,pdf_url,image_url,summary,is_published) values
+('Foundation Impact Snapshot 2026','January–June 2026',2026,'Multi-country','Humanitarian Foundation',486,2176,38450,null,'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=1200&q=85','A six-month summary of verified family assistance, education support, hygiene distributions, and emergency response coordinated with local partners.',true),
+('Education Support Report 2025','January–December 2025',2025,'Kenya','Education Support',212,1484,19600,null,'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=85','Annual program summary covering school kits, learning materials, partner verification, and student participation outcomes.',true)
+on conflict (report_title,year) do nothing;

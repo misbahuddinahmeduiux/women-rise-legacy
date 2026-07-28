@@ -1,0 +1,1044 @@
+WOMEN RISE LEGACY WEBSITE — COMPLETE PROJECT HANDOFF
+
+PROJECT OVERVIEW
+
+I am building the Women Rise Legacy website in WordPress using Elementor Free.
+
+Development conditions:
+- WordPress website
+- Elementor Free
+- No paid plugins
+- No paid Elementor Pro
+- Use free plugins, custom post types, shortcodes, and limited custom code
+- Use Code Snippets only when necessary
+- Website must be scalable and mobile responsive
+
+==================================================
+1. CLIENT'S OLD REQUIREMENTS
+==================================================
+
+The original project was Women Rise Legacy Network, focused on:
+
+- Women empowerment
+- Membership community
+- Mentorship
+- Leadership development
+- Entrepreneurship
+- Networking
+- Business resources
+- Women-owned businesses
+- Events
+- Local chapters
+- Community groups
+
+OLD PUBLIC WEBSITE PAGES
+
+- Homepage
+- About
+- Founder Story
+- Mission and Vision
+- Programs
+- Membership
+- Events
+- Success Stories
+- Podcast
+- Magazine
+- Contact
+
+OLD MEMBERSHIP PLANS
+
+Three membership levels:
+
+1. Rise
+2. Legacy
+3. Elite
+
+OLD MEMBER FEATURES
+
+- Registration and login
+- Member profiles
+- Member directory
+- Member dashboard
+- Profile photo
+- Biography
+- Skills
+- Business details
+- Products and services
+- Awards and achievements
+- Social links
+- Private messages
+- Notifications
+
+OLD MENTOR CENTER
+
+- Mentor profiles
+- Mentor directory
+- Mentor search
+- Mentorship request form
+- Manual mentor matching
+
+OLD BUSINESS FEATURES
+
+- Women-owned business directory
+- Product and service catalog
+- Opportunity Center
+- Jobs
+- Grants
+- Scholarships
+- Speaking opportunities
+- Vendor events
+- Conferences
+
+OLD COMMUNITY FEATURES
+
+- Private groups
+- Forums
+- Local chapters
+- Chapter leaders
+- Chapter events
+- Networking events
+- Leadership workshops
+
+OLD RESOURCE LIBRARY
+
+- Business templates
+- Marketing guides
+- Branding worksheets
+- Contracts
+- Funding guides
+- Leadership resources
+- Social media templates
+
+OLD FUTURE REQUIREMENTS
+
+- AI assistant
+- Mobile application
+- Leadership academy
+- Certifications
+- Annual conference
+- Awards gala
+- Full multivendor marketplace
+
+Important:
+AI assistant, mobile application, advanced dashboard, and full marketplace are not part of the initial free MVP.
+
+==================================================
+2. CLIENT'S NEW REQUIREMENTS
+==================================================
+
+The client now wants a humanitarian and nonprofit division, recommended as Women Rise Legacy Foundation.
+
+NEW FOCUS
+
+- Clothing donations
+- Shoes
+- Toys
+- School supplies
+- Hygiene products
+- Baby items
+- Blankets
+- Family assistance
+- International humanitarian support
+- Disaster relief
+- Educational support
+- Women's empowerment outreach
+
+NEW REQUIRED FEATURES
+
+- Donate Items page
+- Financial Donation page
+- Current Needs page
+- Sponsor a Family
+- Request Assistance form
+- Volunteer registration
+- Partner registration
+- Corporate partnerships
+- Interactive world map
+- External wishlists
+- Give Hope Marketplace
+- Success stories
+- Impact reports
+- Disaster relief campaigns
+- Multilingual website
+
+==================================================
+3. RECOMMENDED BRAND STRUCTURE
+==================================================
+
+A. WOMEN RISE LEGACY NETWORK
+
+For:
+- Membership
+- Mentorship
+- Leadership
+- Entrepreneurship
+- Community
+- Business directory
+- Resources
+- Events
+- Local chapters
+
+B. WOMEN RISE LEGACY FOUNDATION
+
+For:
+- Donate items
+- Donate money
+- Sponsor families
+- Current needs
+- Volunteers
+- Partners
+- Assistance requests
+- Humanitarian projects
+- Disaster relief
+- Impact reports
+
+==================================================
+4. ELEMENTOR FREE IMPLEMENTATION STRATEGY
+==================================================
+
+Elementor Free does not provide:
+- Theme Builder
+- Dynamic CPT single templates
+- Advanced loops
+- Dynamic custom fields
+- Full member dashboard builder
+
+Therefore, the architecture is:
+
+- Elementor Free: normal pages and section designs
+- Pods: custom post types, taxonomies, and fields
+- Content Views: CPT grids and listing pages
+- Pods Templates/shortcodes: dynamic single pages
+- Forminator: all forms and applications
+- GiveWP: financial donations
+- BuddyPress: members and community
+- bbPress: forums
+- Simple Membership: membership access levels
+- WP Go Maps: interactive map
+- Events Manager: event registration and management
+- Members plugin: custom user roles
+- Polylang later: multilingual system
+
+==================================================
+5. PLUGINS ALREADY INSTALLED BEFORE THIS WORK
+==================================================
+
+- Elementor
+- Ultimate Addons for Elementor
+- All in One SEO
+- LiteSpeed Cache
+- Image Optimization
+- MonsterInsights
+- MC4WP
+- bbPress
+- Classic Editor
+- Contact Form 7
+- WPForms Lite
+- FormLayer Free
+- FormLayer Pro
+- WP File Manager
+- WP Reset
+
+FORM PLUGIN STATUS
+
+Installed:
+- Forminator
+- FormLayer Free
+- FormLayer Pro
+- Contact Form 7
+- WPForms Lite
+
+FormLayer Pro:
+- Installed
+- No license activated
+- Basic features appear to work
+- No forms or useful entries existed
+- Export was empty because no forms were created
+
+Current decision:
+- Build all new forms in Forminator
+- Keep FormLayer plugins only as inactive backup if desired
+- Do not build new forms in FormLayer
+- Do not use Contact Form 7 or WPForms Lite for this project
+- Only one form plugin should be active in actual use: Forminator
+
+==================================================
+6. NEWLY INSTALLED PLUGINS COMPLETED SO FAR
+==================================================
+
+The following installation work has been completed:
+
+1. UpdraftPlus
+2. Pods
+3. Content Views
+4. BuddyPress
+5. Simple Membership
+6. WP Mail SMTP
+7. GiveWP
+8. WP Go Maps
+9. Forminator
+
+The user confirmed work is complete up to WP Go Maps.
+
+==================================================
+7. PURPOSE OF INSTALLED PLUGINS
+==================================================
+
+UPDRAFTPLUS
+- Full website backup
+- Database backup
+- Plugin/theme backup
+- Restore point before major changes
+
+PODS
+- Custom post types
+- Custom taxonomies
+- Custom fields
+- Relationships
+- Pods Templates
+- Shortcodes
+
+CONTENT VIEWS
+- CPT grids
+- Listing pages
+- Elementor shortcode display
+- Current Needs grid
+- Business directory
+- Opportunities
+- Resources
+- Chapters
+- Impact stories
+- Campaigns
+
+BUDDYPRESS
+- Member registration
+- Member profiles
+- Member directory
+- Community groups
+- Activity feed
+- Private messages
+- Notifications
+- Mentor profiles
+
+SIMPLE MEMBERSHIP
+Membership levels:
+- Rise
+- Legacy
+- Elite
+
+Use:
+- Protect pages
+- Restrict resources
+- Members-only content
+- Membership access levels
+
+WP MAIL SMTP
+- Form notification emails
+- Registration emails
+- Donation emails
+- Volunteer and assistance request emails
+
+GIVEWP
+- General donations
+- Shipping fund
+- Emergency relief
+- Sponsor a Family
+- School supplies
+- Baby essentials
+- Disaster relief campaigns
+
+WP GO MAPS
+- Countries served
+- Communities served
+- Partner locations
+- Current projects
+- Interactive world map
+
+Recommended:
+Use OpenStreetMap to avoid Google Maps billing and API complications.
+
+FORMINATOR
+Use for:
+- Contact form
+- Membership application
+- Mentor application
+- Volunteer registration
+- Partner registration
+- Corporate partnership form
+- Donate Items form
+- Request Assistance form
+- Shipment tracking form
+
+==================================================
+8. PLUGINS STILL TO INSTALL
+==================================================
+
+Install next:
+
+1. Members – Membership & User Role Editor
+2. Events Manager
+3. Wordfence Security
+
+Install later, after the English structure is complete:
+
+4. Polylang
+5. Connect Polylang for Elementor
+
+Important:
+Do not install Polylang too early because it will complicate pages, menus, and CPT setup.
+
+==================================================
+9. PLUGINS NOT TO INSTALL
+==================================================
+
+Do not install:
+
+- WooCommerce
+- Dokan
+- WCFM Marketplace
+- ACF
+- CPT UI
+- Ultimate Member
+- Charitable
+- Rank Math
+- Yoast
+- The Events Calendar
+- Event Tickets
+- Another cache plugin
+- Another SEO plugin
+- Another donation plugin
+- Another membership/community plugin
+- Multiple security plugins
+- More form plugins
+
+Reasons:
+- Pods replaces ACF and CPT UI
+- GiveWP handles donations
+- BuddyPress handles community and profiles
+- Simple Membership handles content access
+- Events Manager will handle events
+- All in One SEO is already installed
+- LiteSpeed Cache is already installed
+- Forminator handles all forms
+
+==================================================
+10. CUSTOM POST TYPES TO CREATE IN PODS
+==================================================
+
+OLD REQUIREMENT CPTs
+
+1. Business
+Slug:
+business
+
+Purpose:
+Women-owned business directory
+
+Suggested fields:
+- Business Name
+- Owner Name
+- Logo
+- Description
+- Industry
+- Country
+- State
+- City
+- Website
+- Email
+- Phone
+- Social Links
+- Virtual Services
+- Woman-Owned
+- Minority-Owned
+- Veteran-Owned
+- Featured Business
+- Verification Status
+
+2. Product / Service
+Slug:
+product_service
+
+Purpose:
+Member product and service catalog
+
+Suggested fields:
+- Title
+- Seller/Business
+- Product or Service Type
+- Description
+- Image Gallery
+- Price
+- External Purchase Link
+- Contact Link
+- Category
+- Featured Status
+
+3. Opportunity
+Slug:
+opportunity
+
+Purpose:
+Jobs, grants, scholarships, speaking opportunities, vendor events, conferences, and competitions
+
+Suggested fields:
+- Opportunity Title
+- Opportunity Type
+- Organization
+- Location
+- Remote/Onsite
+- Deadline
+- Eligibility
+- Description
+- Application Link
+- Contact Email
+- Featured Opportunity
+
+4. Resource
+Slug:
+resource
+
+Purpose:
+Members-only resource library
+
+Suggested fields:
+- Resource Title
+- Description
+- Resource Type
+- File
+- External Link
+- Featured Image
+- Membership Level
+- Download Instructions
+
+5. Chapter
+Slug:
+chapter
+
+Purpose:
+Local Women Rise Legacy chapters
+
+Suggested fields:
+- Chapter Name
+- City
+- State
+- Country
+- President
+- Vice President
+- Secretary
+- Treasurer
+- Ambassadors
+- Contact Email
+- Chapter Image
+- Meeting Schedule
+- Sponsors
+- Gallery
+- Status
+
+6. Podcast
+Slug:
+podcast
+
+Purpose:
+Podcast episodes
+
+Suggested fields:
+- Episode Title
+- Episode Number
+- Guest
+- Description
+- YouTube Link
+- Spotify Link
+- Audio Embed
+- Transcript
+- Publish Date
+- Featured Image
+
+7. Magazine
+Slug:
+magazine
+
+Purpose:
+Digital magazine issues
+
+Suggested fields:
+- Issue Title
+- Cover Image
+- Issue Number
+- Publication Date
+- PDF File
+- Summary
+- Featured Members
+
+8. Member Success Story
+Slug:
+member_success_story
+
+Purpose:
+Success stories of members
+
+Suggested fields:
+- Story Title
+- Member Name
+- Member Profile
+- Story
+- Images
+- Video
+- Achievement
+- Publish Date
+
+NEW REQUIREMENT CPTs
+
+9. Current Need
+Slug:
+current_need
+
+Purpose:
+Requested items from communities and partners
+
+Suggested fields:
+- Need Title
+- Item Category
+- Description
+- Country
+- Community
+- Quantity Needed
+- Quantity Received
+- Quantity Remaining
+- Urgency
+- Deadline
+- Partner Organization
+- Featured Image
+- Wishlist URL
+- Retailer URL
+- Shipping Address
+- Donation Instructions
+- Status
+- Last Updated
+
+Suggested statuses:
+- Urgent
+- Open
+- Partially Fulfilled
+- Fulfilled
+- Shipped
+- Delivered
+- Closed
+
+10. Sponsor Family
+Slug:
+sponsor_family
+
+Purpose:
+Verified family and community sponsorship profiles
+
+Suggested fields:
+- Public Family Alias
+- Family Reference ID
+- Country
+- General Location
+- Family Size
+- Situation Summary
+- Assistance Required
+- Sponsorship Goal
+- Amount Raised
+- Monthly Support Amount
+- Featured Image
+- Status
+- GiveWP Form Shortcode
+- Updates
+
+Privacy rule:
+Do not publish exact addresses, identification documents, children's full names, medical records, phone numbers, or private internal notes.
+
+11. Campaign
+Slug:
+campaign
+
+Purpose:
+Fundraising and disaster relief campaigns
+
+Suggested fields:
+- Campaign Title
+- Campaign Type
+- Country
+- Start Date
+- End Date
+- Funding Goal
+- Amount Raised
+- Items Needed
+- GiveWP Form
+- Status
+- Updates
+- Images
+
+12. Partner
+Slug:
+partner
+
+Purpose:
+Verified partner organizations
+
+Suggested fields:
+- Organization Name
+- Logo
+- Country
+- Organization Type
+- Website
+- Description
+- Communities Served
+- Verified Status
+- Active Projects
+
+13. Impact Story
+Slug:
+impact_story
+
+Purpose:
+Humanitarian donation success stories
+
+Suggested fields:
+- Story Title
+- Country
+- Community
+- Campaign
+- Story
+- Number of Beneficiaries
+- Items Distributed
+- Before Image
+- After Image
+- Video Link
+- Consent Confirmed
+- Publish Date
+
+14. Impact Report
+Slug:
+impact_report
+
+Purpose:
+Annual, project, and community impact reports
+
+Suggested fields:
+- Report Title
+- Reporting Period
+- Year
+- Country
+- Program
+- People Supported
+- Items Distributed
+- Funds Used
+- PDF File
+- Summary
+- Featured Image
+
+==================================================
+11. ITEMS THAT SHOULD NOT BE CREATED AS CPTs
+==================================================
+
+Do not create CPTs for:
+
+- Members: BuddyPress users
+- Mentors: BuddyPress users with Mentor role
+- Forums: bbPress
+- Events: Events Manager
+- Donations: GiveWP
+- Form applications: Forminator
+- Marketplace products: use directory/catalog in the initial MVP
+
+==================================================
+12. TAXONOMIES TO CREATE IN PODS
+==================================================
+
+Recommended taxonomies:
+
+- Country
+- Community
+- Program
+- Need Category
+- Urgency
+- Fulfillment Status
+- Industry
+- Opportunity Type
+- Resource Type
+- Chapter Region
+- Campaign Type
+
+==================================================
+13. RECOMMENDED USER ROLES
+==================================================
+
+Create with Members – Membership & User Role Editor:
+
+- Member
+- Mentor
+- Volunteer
+- Partner Representative
+- Chapter Leader
+- Donation Manager
+- Content Manager
+- Administrator
+
+Do not give Administrator access to volunteers, partners, mentors, or chapter leaders.
+
+==================================================
+14. FREE MVP WORKFLOWS
+==================================================
+
+MENTOR MATCHING
+
+Automatic matching will not be used.
+
+Workflow:
+1. User browses mentor profiles
+2. User submits Forminator mentorship request
+3. Admin reviews request
+4. Admin manually contacts and assigns mentor
+5. Member receives confirmation email
+
+GIVE HOPE MARKETPLACE
+
+Do not use WooCommerce in the first phase.
+
+Workflow:
+1. Donor browses Current Needs
+2. Donor filters by country/category
+3. Donor opens a Current Need
+4. Donor clicks external wishlist or retailer link
+5. Donor buys the item on Amazon, Walmart, Target, or another retailer
+6. Donor ships it to the approved address
+7. Donor submits tracking details using Forminator
+8. Admin manually updates quantity and status
+
+WOMEN-OWNED MARKETPLACE
+
+Initial MVP will be a directory/catalog, not a real multivendor marketplace.
+
+Display:
+- Product image
+- Description
+- Price
+- Seller/business profile
+- Contact seller
+- Visit seller website
+- External purchase link
+
+No:
+- Vendor dashboards
+- Split payments
+- Commissions
+- Withdrawals
+- Complex shipping
+- Marketplace checkout
+
+REQUEST ASSISTANCE
+
+Workflow:
+1. Applicant submits Forminator form
+2. Admin reviews request
+3. Supporting documents are verified
+4. Admin approves or rejects
+5. Approved request is manually published as Current Need
+6. Need receives donations
+7. Admin updates status
+8. Final impact story/report is published
+
+SPONSOR A FAMILY
+
+Workflow:
+1. Family is verified privately
+2. Admin creates Sponsor Family CPT
+3. Public alias is used
+4. GiveWP form is embedded
+5. Donations are received
+6. Admin updates amount raised
+7. Approved impact updates are published
+
+DONATE ITEMS
+
+Workflow:
+1. Donor submits Donate Items form
+2. Admin checks item suitability
+3. Admin sends shipping instructions
+4. Donor ships item
+5. Donor submits tracking details
+6. Admin records shipment
+7. Current Need quantity/status is updated
+8. Impact update is published
+
+==================================================
+15. FEATURES NOT REALISTIC IN A FULLY FREE MVP
+==================================================
+
+Do not promise these in the first phase:
+
+- Automated mentor matching
+- Custom AI assistant
+- Advanced personal goal tracking
+- Fully custom member dashboard
+- Real-time shipment tracking
+- Automatic wishlist quantity synchronization
+- Automated recipient case management
+- Automated partner verification
+- Advanced inventory system
+- Fully automated family sponsorship updates
+- Full multivendor marketplace
+- Vendor split payments
+- Seller withdrawals
+- Mobile application
+- Automated PDF certificates
+- Advanced analytics dashboard
+- Full frontend admin portals
+
+These can be future phases or custom development.
+
+==================================================
+16. RECOMMENDED NEXT STEPS
+==================================================
+
+STEP 1 — CHECK WEBSITE HEALTH
+
+Confirm:
+- UpdraftPlus backup exists
+- Website frontend works
+- Elementor editor opens
+- No plugin errors
+- LiteSpeed cache has been purged
+
+STEP 2 — INSTALL NEXT PLUGINS
+
+Install and activate:
+1. Members – Membership & User Role Editor
+2. Events Manager
+3. Wordfence Security
+
+Do not install Polylang yet.
+
+STEP 3 — CONFIGURE BUDDYPRESS
+
+Configure:
+- Components
+- Pages
+- Registration
+- Extended profile fields
+- Member directory
+- Groups
+- Private messages
+- Notifications
+- Activity feed
+
+STEP 4 — CREATE USER ROLES
+
+Create:
+- Member
+- Mentor
+- Volunteer
+- Partner Representative
+- Chapter Leader
+- Donation Manager
+- Content Manager
+
+STEP 5 — CREATE FIRST PODS CPT
+
+Create:
+Current Need
+Slug:
+current_need
+
+After creating the CPT:
+- Add fields
+- Add taxonomies
+- Add sample Current Need entries
+- Build Content Views grid
+- Insert shortcode in Elementor page
+- Build single page with Pods Template or field shortcodes
+
+STEP 6 — CREATE FORMINATOR FORMS
+
+Priority order:
+1. Contact
+2. Donate Items
+3. Request Assistance
+4. Volunteer Registration
+5. Partner Registration
+6. Corporate Partnership
+7. Mentor Request
+8. Shipment Tracking
+
+STEP 7 — CONFIGURE GIVEWP
+
+Create forms:
+- General Donation
+- Shipping Fund
+- Emergency Relief
+- Sponsor a Family
+- School Supplies
+- Baby Essentials
+- Women Empowerment
+- Disaster Relief
+
+STEP 8 — CONFIGURE WP GO MAPS
+
+Use OpenStreetMap.
+
+Add sample markers for:
+- Countries served
+- Communities
+- Partner organizations
+- Active projects
+
+STEP 9 — BUILD ENGLISH WEBSITE FIRST
+
+Complete:
+- Pages
+- Header
+- Footer
+- Menus
+- CPT structure
+- Forms
+- Membership
+- Donations
+- Map
+- Responsive design
+
+STEP 10 — ADD MULTILINGUAL SYSTEM LATER
+
+After English structure is complete, install:
+- Polylang
+- Connect Polylang for Elementor
+
+Languages:
+- English
+- Spanish
+- French
+
+Manual translations will be needed.
+
+==================================================
+17. IMPORTANT PROJECT RULES
+==================================================
+
+- Use Elementor Free only
+- Use one form plugin in actual production: Forminator
+- Use one SEO plugin: All in One SEO
+- Use one cache plugin: LiteSpeed Cache
+- Use one donation plugin: GiveWP
+- Use one event plugin: Events Manager
+- Use one community system: BuddyPress
+- Use Pods instead of ACF and CPT UI
+- Use external wishlist links instead of WooCommerce in MVP
+- Keep beneficiary data private
+- Do not publicly expose children's full names
+- Do not publicly expose exact family addresses
+- Do not expose identity or medical documents
+- Keep regular backups
+- Test after each group of plugin installations
+- Purge LiteSpeed cache after major changes
+- Avoid activating unnecessary plugins
+- Build the website in phases
+
+==================================================
+18. NEW CHAT STARTING INSTRUCTION
+==================================================
+
+Continue from this exact point:
+
+“WP Go Maps installation is complete. Now guide me step by step to install and configure Members – Membership & User Role Editor, Events Manager, and Wordfence. After that, start BuddyPress configuration and then create the first Pods CPT called Current Need with all required fields, taxonomies, and Elementor Free display setup.”
