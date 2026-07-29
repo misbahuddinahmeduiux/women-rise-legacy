@@ -1,54 +1,74 @@
-WOMEN RISE LEGACY — PHASE 2 COMPLETE PACKAGE
-============================================
+WOMEN RISE LEGACY — PHASE 3 FINAL PRODUCTION PACKAGE
+=====================================================
 
-THIS ZIP CONTAINS PHASE 1 + PHASE 2 SOURCE CODE.
-It is designed to use the SAME Supabase project already configured for Phase 1.
+THIS ZIP CONTAINS PHASE 1 + PHASE 2 + PHASE 3 SOURCE CODE.
+Use the SAME Supabase project already configured for the working Phase 2 installation.
 
-SAFE INSTALL ORDER
+FAST INSTALL ORDER
 ------------------
-1. Keep your working Phase 1 folder as a backup. Do not delete it.
+1. Keep the working Phase 2 folder as a backup.
 2. Extract this ZIP into a NEW folder.
-3. Copy these two private files from your working Phase 1 folder into the new folder:
-   - client\.env
-   - server\.env
-4. Double-click 1-install-packages.bat
-5. In your existing Supabase project, open SQL Editor.
-6. Open supabase\PHASE-2-SETUP-ALL.sql, copy all SQL, paste it into Supabase, and click Run.
-7. Optional: run supabase\PHASE-2-VERIFY.sql to confirm the new tables and demo records.
-8. Double-click 2-start-project.bat
-9. Sign out and sign in again so the extended profile fields are loaded.
-10. Open http://localhost:5173/dashboard
-11. Open http://localhost:5173/admin
+3. Double-click 0-SETUP-PHASE-3.bat.
+4. When asked, paste the path of the previous WORKING Phase 2 project folder.
+   The script copies the private server/.env safely and installs packages.
+5. Open Supabase SQL Editor in the existing Women Rise Legacy project.
+6. Open supabase\PHASE-3-SETUP-ALL.sql, copy all SQL, paste it, and click Run.
+7. Optional: run supabase\PHASE-3-VERIFY.sql.
+8. Double-click 2-start-project.bat.
+9. Sign out and sign in again.
+10. Test:
+    - http://localhost:5173/login
+    - http://localhost:5173/forgot-password
+    - http://localhost:5173/dashboard
+    - http://localhost:5173/admin
+    - http://localhost:5050/api/health
+    - http://localhost:5050/api/ready
 
-DO NOT
-------
-- Do not paste a Supabase secret key into client\.env.
-- Do not share server\.env or screenshots containing secret keys.
-- Do not run PHASE-1-SETUP-ALL.sql again on your working database.
-- Do not overwrite your only working Phase 1 copy before testing Phase 2.
-
-DATABASE
---------
+PHASE 3 DATABASE
+----------------
 Run only:
-  supabase\PHASE-2-SETUP-ALL.sql
+  supabase\PHASE-3-SETUP-ALL.sql
 
-The Phase 2 SQL extends existing tables, creates Network modules, adds branded demo records,
-and keeps Phase 1 Foundation data intact.
+Do not rerun older setup files unless you are intentionally rebuilding a new database.
 
-START COMMAND
--------------
-After first-time setup, daily startup is only:
+PHASE 3 FEATURES
+----------------
+- Donation receipt numbers and secure receipt links
+- Demo and Stripe-ready receipt workflow
+- Recurring donation records and cancellation
+- Password reset and secure update pages
+- Notification preferences
+- Transactional email queue with optional Resend delivery
+- Admin receipt management
+- Admin email queue and retry controls
+- Admin audit logs
+- Application/submission status history
+- Site settings and feature configuration
+- Request IDs and improved production error messages
+- API health and database-readiness checks
+- Accessibility skip link and offline API status
+- SEO metadata utilities, robots.txt, and print-ready receipts
+- Responsive Phase 3 dashboard and admin interfaces
+
+PAYMENTS AND EMAIL
+------------------
+- PAYMENT_MODE=demo works locally without charging money.
+- Stripe live mode requires valid Stripe keys and webhook configuration.
+- Email messages remain queued if RESEND_API_KEY is empty.
+- Add RESEND_API_KEY and a verified EMAIL_FROM value to enable delivery.
+
+SECURITY
+--------
+- Real .env files and private keys are NOT included.
+- Never add SUPABASE_SERVICE_ROLE_KEY to client/.env or Vercel frontend variables.
+- Rotate any previously exposed secret before a real production launch.
+
+DAILY START
+-----------
+After setup:
   2-start-project.bat
 
-WEBSITE
--------
-Frontend: http://localhost:5173
-API:      http://localhost:5050/api/health
-
-CONTINUING IN A NEW CHAT
-------------------------
+NEW CHAT CONTINUATION
+---------------------
 Upload PROJECT-HANDOFF.md and CURRENT-PROGRESS.md and say:
-"Read these handoff files and continue Women Rise Legacy from the next pending task."
-
-PHASE 2.1 UI NOTE
-This package includes the responsive homepage slider, official founder cutout image, Donate-button fix, and laptop/tablet/mobile navigation refinements. See UI-FIX-README.txt.
+"Read these handoff files and continue Women Rise Legacy from the next pending production task."

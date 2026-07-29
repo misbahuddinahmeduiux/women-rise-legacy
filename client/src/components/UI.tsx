@@ -9,7 +9,7 @@ export function SectionHeading({ eyebrow, title, text, centered = false }: { eye
 }
 export function Progress({ value, max }: { value: number; max: number }) { const percent = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0; return <div><div className="progress"><span style={{ width: `${percent}%` }}/></div><small>{percent}% funded</small></div>; }
 export function Empty({ title, text }: { title: string; text: string }) { return <div className="empty"><h3>{title}</h3><p>{text}</p></div>; }
-export function Loader() { return <div className="loader" aria-label="Loading"/>; }
-export function ErrorBox({ message }: { message: string }) { return <div className="notice error">{message}</div>; }
-export function SuccessBox({ message }: { message: string }) { return <div className="notice success">{message}</div>; }
+export function Loader() { return <div className="loader" role="status" aria-label="Loading"><span className="sr-only">Loading</span></div>; }
+export function ErrorBox({ message }: { message: string }) { return <div className="notice error" role="alert">{message}</div>; }
+export function SuccessBox({ message }: { message: string }) { return <div className="notice success" role="status" aria-live="polite">{message}</div>; }
 export function BackLink({ to, children }: { to: string; children: ReactNode }) { return <Link className="back-link" to={to}>← {children}</Link>; }

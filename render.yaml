@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: women-rise-legacy-api
+    runtime: node
+    plan: free
+    region: ohio
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        sync: false
+      - key: CLIENT_URLS
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: APP_NAME
+        value: Women Rise Legacy
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PAYMENT_MODE
+        value: disabled
+      - key: PAYMENT_CREDENTIALS_ENCRYPTION_KEY
+        generateValue: true
+      - key: STRIPE_CURRENCY
+        value: usd
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false

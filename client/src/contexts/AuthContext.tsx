@@ -7,6 +7,8 @@ interface AuthValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (fullName: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  requestPasswordReset: (email:string)=>Promise<void>;
+  updatePassword: (password:string)=>Promise<void>;
 }
 const AuthContext = createContext<AuthValue | null>(null);
 
@@ -21,8 +23,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthValue>(() => ({
     user: session?.user ?? null, session, loading,
     signIn: async (email, password) => { const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) throw error; },
-    signUp: async (fullName, email, password) => { const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } }); if (error) throw error; },
-    signOut: async () => { const { error } = await supabase.auth.signOut(); if (error) throw error; }
+    signUp: async (fullName, email, password) => { const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/dashboard` } }); if (error) throw error; },
+    signOut: async () => { const { error } = await supabase.auth.signOut(); if (error) throw error; },
+    requestPasswordReset: async (email)=>{const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/reset-password`});if(error)throw error;},
+    updatePassword: async(password)=>{const {error}=await supabase.auth.updateUser({password});if(error)throw error;}
   }), [session, loading]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -5,8 +5,8 @@ declare global {
     interface Request {
       user?: User;
       profile?: { id: string; role: string; full_name: string | null };
+      requestId?: string;
     }
   }
 }
-
 export {};

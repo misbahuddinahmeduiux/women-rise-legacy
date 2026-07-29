@@ -45,3 +45,32 @@ export interface MentorRequest {
 export interface MembershipApplication {
   id: string; user_id: string | null; full_name: string; email: string; requested_level: MembershipLevel; professional_goal: string; community_interest: string; status: string; created_at: string;
 }
+
+export type BillingCycle = 'monthly' | 'yearly' | 'one_time';
+export interface MembershipPlan {
+  id:string; name:string; slug:string; access_level:MembershipLevel; tagline:string|null; description:string; features:string[];
+  currency:string; monthly_enabled:boolean; monthly_price:number|null; yearly_enabled:boolean; yearly_price:number|null;
+  one_time_enabled:boolean; one_time_price:number|null; one_time_duration_months:number|null; one_time_lifetime:boolean;
+  auto_renew:boolean; trial_days:number; grace_period_days:number; mentorship_access:'browse'|'request'|'priority';
+  directory_access:boolean; business_listing:boolean; featured_visibility:boolean; badge_text:string|null; is_featured:boolean; display_order:number; is_active:boolean;
+}
+export interface MembershipPayment {
+  id:string; user_id:string; plan_id:string; billing_cycle:BillingCycle; provider:string; amount:number; currency:string; status:string;
+  provider_session_id:string|null; provider_payment_id:string|null; provider_subscription_id:string|null; receipt_number:string|null; receipt_token:string;
+  paid_at:string|null; created_at:string; plan?:Partial<MembershipPlan>; profile?:{full_name:string|null};
+}
+export interface MembershipSubscription {
+  id:string; user_id:string; plan_id:string; billing_cycle:BillingCycle; provider:string; provider_subscription_id:string|null; status:string;
+  starts_at:string; current_period_end:string|null; expires_at:string|null; cancel_at_period_end:boolean; cancelled_at:string|null;
+  plan?:Partial<MembershipPlan>; profile?:{full_name:string|null};
+}
+export interface PodcastCategory { id:string; name:string; slug:string; description:string|null; display_order:number; is_active:boolean; }
+export interface PodcastGuest { id:string; name:string; designation:string|null; bio:string|null; image_url:string|null; mentor_id:string|null; website_url:string|null; linkedin_url:string|null; is_active:boolean; mentor?:Partial<MemberProfile>; }
+export interface PodcastEpisode {
+  id:string; title:string; slug:string; episode_number:number|null; category_id:string|null; guest_id:string|null; guest_name:string|null; guest_designation:string|null;
+  short_description:string; show_notes:string; cover_image_url:string|null; audio_url:string|null; youtube_url:string|null; spotify_url:string|null; apple_podcasts_url:string|null;
+  duration_minutes:number|null; publish_at:string|null; status:'draft'|'scheduled'|'published'|'archived'; is_featured:boolean; seo_title:string|null; seo_description:string|null;
+  category?:PodcastCategory|null; guest?:PodcastGuest|null; created_at:string; updated_at:string;
+}
+export interface WebsiteContentRow { id:string; content_key:string; label:string; content_type:'section'|'page'|'navigation'|'footer'|'announcement'|'seo'; value:Record<string,unknown>; is_published:boolean; }
+export interface MediaAsset { id:string; file_name:string; storage_path:string; public_url:string; mime_type:string; file_size:number; alt_text:string|null; title:string|null; created_at:string; }

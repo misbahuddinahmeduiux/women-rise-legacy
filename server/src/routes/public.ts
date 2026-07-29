@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabase.js';
+import { requireDirectoryMembership, requireUser } from '../middleware/auth.js';
 
 export const publicRouter = Router();
 
@@ -10,7 +11,7 @@ publicRouter.get('/stats', async (_req, res, next) => {
       supabaseAdmin.from('campaigns').select('*', { count: 'exact', head: true }).eq('is_published', true),
       supabaseAdmin.from('sponsor_families').select('*', { count: 'exact', head: true }).eq('is_published', true),
       supabaseAdmin.from('impact_stories').select('beneficiaries_count, items_distributed').eq('is_published', true),
-      supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('is_directory_visible', true).eq('membership_status', 'active'),
+      supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).eq('is_directory_visible', true).in('membership_status', ['active', 'trialing']).or(`membership_expires_at.is.null,membership_expires_at.gt.${new Date().toISOString()}`),
       supabaseAdmin.from('businesses').select('*', { count: 'exact', head: true }).eq('is_published', true)
     ]);
     const beneficiaries = (impact ?? []).reduce((sum: number, item: { beneficiaries_count?: number | null }) => sum + Number(item.beneficiaries_count ?? 0), 0);
@@ -37,11 +38,11 @@ publicRouter.get('/impact-stories', async (_req, res, next) => { try { const { d
 publicRouter.get('/impact-reports', async (_req, res, next) => { try { const { data, error } = await supabaseAdmin.from('impact_reports').select('*').eq('is_published', true).order('year', { ascending: false }); if (error) throw error; res.json(data); } catch (error) { next(error); } });
 publicRouter.get('/countries-served', async (_req, res, next) => { try { const { data, error } = await supabaseAdmin.from('countries_served').select('*').eq('is_active', true).order('country'); if (error) throw error; res.json(data); } catch (error) { next(error); } });
 
-publicRouter.get('/members', async (_req, res, next) => {
-  try { const { data, error } = await supabaseAdmin.from('profiles').select('id,full_name,role,country,city,avatar_url,headline,bio,skills,linkedin_url,website_url,membership_level,membership_status,is_directory_visible,is_mentor,mentor_expertise,mentor_availability,business_name,created_at').eq('is_directory_visible', true).eq('membership_status', 'active').order('full_name'); if (error) throw error; res.json(data); } catch (error) { next(error); }
+publicRouter.get('/members', requireUser, requireDirectoryMembership, async (_req, res, next) => {
+  try { const { data, error } = await supabaseAdmin.from('profiles').select('id,full_name,role,country,city,avatar_url,headline,bio,skills,linkedin_url,website_url,membership_level,membership_status,is_directory_visible,is_mentor,mentor_expertise,mentor_availability,business_name,created_at').eq('is_directory_visible', true).in('membership_status', ['active', 'trialing']).or(`membership_expires_at.is.null,membership_expires_at.gt.${new Date().toISOString()}`).order('full_name'); if (error) throw error; res.json(data); } catch (error) { next(error); }
 });
-publicRouter.get('/mentors', async (_req, res, next) => {
-  try { const { data, error } = await supabaseAdmin.from('profiles').select('id,full_name,role,country,city,avatar_url,headline,bio,skills,linkedin_url,website_url,membership_level,membership_status,is_directory_visible,is_mentor,mentor_expertise,mentor_availability,business_name,created_at').eq('is_mentor', true).eq('membership_status', 'active').order('full_name'); if (error) throw error; res.json(data); } catch (error) { next(error); }
+publicRouter.get('/mentors', requireUser, requireDirectoryMembership, async (_req, res, next) => {
+  try { const { data, error } = await supabaseAdmin.from('profiles').select('id,full_name,role,country,city,avatar_url,headline,bio,skills,linkedin_url,website_url,membership_level,membership_status,is_directory_visible,is_mentor,mentor_expertise,mentor_availability,business_name,created_at').eq('is_mentor', true).eq('is_directory_visible', true).order('full_name'); if (error) throw error; res.json(data); } catch (error) { next(error); }
 });
 publicRouter.get('/businesses', async (req, res, next) => {
   try { let q=supabaseAdmin.from('businesses').select('*').eq('is_published',true).order('is_featured',{ascending:false}).order('name'); if(req.query.featured==='true')q=q.eq('is_featured',true); const {data,error}=await q; if(error)throw error; res.json(data); } catch(error){next(error)}
@@ -53,3 +54,5 @@ publicRouter.get('/resources', async (_req,res,next)=>{try{const {data,error}=aw
 publicRouter.get('/events', async (req,res,next)=>{try{let q=supabaseAdmin.from('network_events').select('*').eq('is_published',true).order('start_at',{ascending:true});if(req.query.upcoming==='true')q=q.gte('start_at',new Date().toISOString());const {data,error}=await q;if(error)throw error;res.json(data)}catch(error){next(error)}});
 publicRouter.get('/chapters', async (_req,res,next)=>{try{const {data,error}=await supabaseAdmin.from('chapters').select('*').eq('is_published',true).order('country').order('city');if(error)throw error;res.json(data)}catch(error){next(error)}});
 publicRouter.get('/member-success-stories', async (_req,res,next)=>{try{const {data,error}=await supabaseAdmin.from('member_success_stories').select('*').eq('is_published',true).order('publish_date',{ascending:false});if(error)throw error;res.json(data)}catch(error){next(error)}});
+
+publicRouter.get('/settings', async (_req,res,next)=>{try{const {data,error}=await supabaseAdmin.from('site_settings').select('key,value').eq('is_public',true).order('key');if(error)throw error;res.json(Object.fromEntries((data??[]).map(row=>[row.key,row.value])))}catch(error){next(error)}});

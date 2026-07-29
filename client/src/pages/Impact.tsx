@@ -1,6 +1,8 @@
 import { Download, MapPin } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Empty, ErrorBox, Loader, PageHero, SectionHeading } from '../components/UI';
+import { Empty, ErrorBox, Loader, SectionHeading } from '../components/UI';
+import { CmsPageHero } from '../components/CmsPageHero';
+import { useWebsiteContent } from '../hooks/useWebsiteContent';
 import { api } from '../lib/api';
 import type { CountryServed, ImpactReport, ImpactStory } from '../types';
 
@@ -36,6 +38,22 @@ export default function Impact() {
   const [countries, setCountries] = useState<CountryServed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const content = useWebsiteContent('page.impact', {
+    seoTitle: 'Impact and Accountability',
+    seoDescription: 'Explore Women Rise Legacy countries served, impact stories, and transparent public reports.',
+    eyebrow: 'Impact and accountability',
+    title: 'See where support goes and what it achieves',
+    heroText: 'Explore countries served, consent-based impact stories, and public reports covering people supported, items distributed, and funds used.',
+    reachEyebrow: 'Global reach',
+    reachTitle: 'Communities connected through trusted partners',
+    reachText: 'Select a marker to view current country-level activity. Exact beneficiary addresses are never shown.',
+    reportsEyebrow: 'Public reporting',
+    reportsTitle: 'Impact reports',
+    reportsText: 'Download approved reports when a PDF is available, or review the published summary and outcome totals.',
+    storiesEyebrow: 'Stories of change',
+    storiesTitle: 'Responsible, consent-based updates',
+    storiesText: 'Stories focus on outcomes while limiting personal details and protecting dignity.'
+  });
   useEffect(() => {
     Promise.all([
       api<ImpactStory[]>('/public/impact-stories'),
@@ -44,12 +62,12 @@ export default function Impact() {
     ]).then(([storyData, reportData, countryData]) => { setStories(storyData); setReports(reportData); setCountries(countryData); }).catch((err) => setError(err.message)).finally(() => setLoading(false));
   }, []);
   return <>
-    <PageHero eyebrow="Impact and accountability" title="See where support goes and what it achieves" text="Explore countries served, consent-based impact stories, and public reports covering people supported, items distributed, and funds used."/>
+    <CmsPageHero contentKey="page.impact" fallback={{seoTitle:content.seoTitle,seoDescription:content.seoDescription,eyebrow:content.eyebrow,title:content.title,heroText:content.heroText}}/>
     <section className="section"><div className="container">{loading ? <Loader/> : error ? <ErrorBox message={error}/> : <>
-      <SectionHeading eyebrow="Global reach" title="Communities connected through trusted partners" text="Select a marker to view current country-level activity. Exact beneficiary addresses are never shown."/>
+      <SectionHeading eyebrow={content.reachEyebrow} title={content.reachTitle} text={content.reachText}/>
       {countries.length ? <GlobalImpactMap countries={countries}/> : <Empty title="Map data is not published yet" text="Countries served will appear after administrator review."/>}
     </>}</div></section>
-    <section className="section alt"><div className="container"><SectionHeading eyebrow="Public reporting" title="Impact reports" text="Download approved reports when a PDF is available, or review the published summary and outcome totals."/>{reports.length ? <div className="card-grid">{reports.map((report) => <article className="card" key={report.id}><img src={report.image_url || '/assets/brand/event-community.webp'} alt=""/><div className="card-body"><div className="card-meta"><span className="badge">{report.year}</span><span>{report.reporting_period}</span></div><h3>{report.report_title}</h3><p>{report.summary}</p><div className="need-count"><b>{report.people_supported}</b> people · {report.items_distributed} items · ${Number(report.funds_used).toLocaleString()} used</div>{report.pdf_url ? <a className="text-link" href={report.pdf_url} target="_blank" rel="noreferrer">Download report <Download size={16}/></a> : <small>PDF will be added after approval.</small>}</div></article>)}</div> : <Empty title="No reports published" text="Approved impact reports will appear here."/>}</div></section>
-    <section className="section"><div className="container"><SectionHeading eyebrow="Stories of change" title="Responsible, consent-based updates" text="Stories focus on outcomes while limiting personal details and protecting dignity."/>{stories.length ? <div className="card-grid">{stories.map((item) => <article className="card" key={item.id}><img src={item.image_url || '/assets/brand/event-community.webp'} alt=""/><div className="card-body"><div className="card-meta"><span className="badge">{item.country}</span><span>{item.publish_date}</span></div><h3>{item.title}</h3><p>{item.story}</p><div className="need-count"><b>{item.beneficiaries_count}</b> people supported · {item.items_distributed} items distributed</div></div></article>)}</div> : <Empty title="No impact stories yet" text="Approved updates will appear here after publication."/>}</div></section>
+    <section className="section alt"><div className="container"><SectionHeading eyebrow={content.reportsEyebrow} title={content.reportsTitle} text={content.reportsText}/>{reports.length ? <div className="card-grid">{reports.map((report) => <article className="card" key={report.id}><img src={report.image_url || '/assets/brand/event-community.webp'} alt=""/><div className="card-body"><div className="card-meta"><span className="badge">{report.year}</span><span>{report.reporting_period}</span></div><h3>{report.report_title}</h3><p>{report.summary}</p><div className="need-count"><b>{report.people_supported}</b> people · {report.items_distributed} items · ${Number(report.funds_used).toLocaleString()} used</div>{report.pdf_url ? <a className="text-link" href={report.pdf_url} target="_blank" rel="noreferrer">Download report <Download size={16}/></a> : <small>PDF will be added after approval.</small>}</div></article>)}</div> : <Empty title="No reports published" text="Approved impact reports will appear here."/>}</div></section>
+    <section className="section"><div className="container"><SectionHeading eyebrow={content.storiesEyebrow} title={content.storiesTitle} text={content.storiesText}/>{stories.length ? <div className="card-grid">{stories.map((item) => <article className="card" key={item.id}><img src={item.image_url || '/assets/brand/event-community.webp'} alt=""/><div className="card-body"><div className="card-meta"><span className="badge">{item.country}</span><span>{item.publish_date}</span></div><h3>{item.title}</h3><p>{item.story}</p><div className="need-count"><b>{item.beneficiaries_count}</b> people supported · {item.items_distributed} items distributed</div></div></article>)}</div> : <Empty title="No impact stories yet" text="Approved updates will appear here after publication."/>}</div></section>
   </>;
 }

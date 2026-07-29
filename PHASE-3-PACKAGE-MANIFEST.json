@@ -1,0 +1,35 @@
+{
+  "project": "Women Rise Legacy",
+  "release": "Phase 3.1 Payment Gateway Manager",
+  "version": "3.1.0",
+  "contains_private_env_files": false,
+  "database_migrations": [
+    "supabase/PHASE-3-SETUP-ALL.sql",
+    "supabase/PHASE-3.1-PAYMENT-GATEWAYS.sql"
+  ],
+  "database_verification": "supabase/PHASE-3.1-VERIFY.sql",
+  "setup_windows": "0-SETUP-PHASE-3.1-PAYMENTS.bat",
+  "setup_unix": "0-setup-phase-3.1-payments.sh",
+  "features": [
+    "Admin-configurable Stripe gateway",
+    "Admin-configurable PayPal gateway",
+    "Admin-configurable bank transfer method",
+    "AES-256-GCM encrypted credential storage",
+    "Real-time Connect and Test actions",
+    "Stripe one-time and recurring Checkout",
+    "PayPal one-time Orders API checkout and capture",
+    "Webhook reconciliation",
+    "Admin transaction reconciliation"
+  ],
+  "validation": {
+    "typescript_syntax_scan": "passed",
+    "local_import_resolution": "passed",
+    "json_parse_checks": "passed",
+    "shell_syntax_checks": "passed",
+    "credential_encryption_round_trip": "passed",
+    "private_secret_scan": "passed",
+    "zip_integrity": "run during final packaging",
+    "full_npm_build": "must run during local setup because the dependency registry returned 503/timeouts in the packaging environment",
+    "source_level_typecheck": "deferred to setup script because installed dependency types were unavailable in packaging environment"
+  }
+}

@@ -33,6 +33,26 @@ async function verifySupabaseUser(token: string, publishableKey: string): Promis
   return await response.json() as User;
 }
 
+
+export async function optionalUser(req: Request, _res: Response, next: NextFunction) {
+  try {
+    const token = getBearerToken(req);
+    if (!token) return next();
+    const user = await verifySupabaseUser(token, getPublishableKey(req));
+    if (!user?.id) return next();
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('id, role, full_name')
+      .eq('id', user.id)
+      .maybeSingle();
+    req.user = user;
+    if (profile) req.profile = profile;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function requireUser(req: Request, res: Response, next: NextFunction) {
   try {
     const token = getBearerToken(req);
@@ -72,4 +92,23 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
 
   next();
+}
+
+
+export async function requireDirectoryMembership(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.user || !req.profile) return res.status(401).json({ error: 'Authentication required.' });
+    if (['admin', 'content_manager'].includes(req.profile.role)) return next();
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .select('membership_status,membership_expires_at,plan:membership_plans!profiles_membership_plan_id_fkey(directory_access)')
+      .eq('id', req.user.id)
+      .single();
+    if (error || !data) return res.status(403).json({ error: 'Membership access could not be verified.' });
+    const expiry = data.membership_expires_at ? new Date(data.membership_expires_at).getTime() : null;
+    const active = ['active', 'trialing'].includes(String(data.membership_status)) && (expiry === null || expiry > Date.now());
+    const directoryAccess = Boolean((data.plan as any)?.directory_access);
+    if (!active || !directoryAccess) return res.status(403).json({ error: 'An active Rise, Legacy, or Elite membership is required to access this directory.' });
+    next();
+  } catch (error) { next(error); }
 }
