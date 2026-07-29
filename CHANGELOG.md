@@ -71,3 +71,13 @@
 - Added a dynamic website CMS for homepage sections, public-page copy, navigation, footer, announcement, organization details, and SEO defaults.
 - Added dynamic form options, Supabase media uploads, and editable transactional email templates.
 - Added Phase 4 SQL migration, RLS policies, storage bucket, verification SQL, setup scripts, handoff, and validation documentation.
+
+## 6.0.0 — Phase 6 Step 1
+
+- Integrated six client-approved Women Rise Legacy images into homepage defaults.
+- Added safe CMS image migration for existing Phase 4/5 default content.
+- Redesigned the “Your next chapter starts here” CTA into a responsive two-column conversion section.
+- Standardized CTA button sizing, iconography, focus states, and mobile stacking.
+- Added a professional homepage gallery mosaic.
+- Added Phase 6 source and database verification scripts.
+- Excluded all three unconfirmed male-subject images from the public package.

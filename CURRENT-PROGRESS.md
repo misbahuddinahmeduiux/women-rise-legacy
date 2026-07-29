@@ -47,3 +47,7 @@ Run `supabase/PHASE-4-DYNAMIC-CMS.sql` once in the existing Phase 3.1 Supabase p
 - Perform a controlled low-value live transaction and refund test.
 - Configure a verified email sender.
 - Rotate every secret previously exposed in messages, screenshots, or repositories.
+
+## Phase 6 development started
+
+Phase 6 Step 1 is complete in source: approved homepage images and the closing CTA redesign. Admin, member, and mentor dashboard redesigns remain pending and will be handled one major screen at a time.

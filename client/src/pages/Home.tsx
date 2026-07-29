@@ -31,9 +31,9 @@ const defaultHeroSlides = [
     primaryTo: '/membership',
     secondaryLabel: 'Meet the founder',
     secondaryTo: '/about',
-    image: '/assets/brand/founder-transparent.png',
-    imageAlt: 'Founder of Women Rise Legacy Network',
-    imageMode: 'founder',
+    image: '/assets/client/women-rise-founder-speaking-black.webp',
+    imageAlt: 'Women Rise Legacy founder speaking at a leadership event',
+    imageMode: 'cover',
     badgeTitle: 'Founder-led vision',
     badgeText: 'Leadership rooted in lived experience',
     theme: 'founder-theme'
@@ -46,8 +46,8 @@ const defaultHeroSlides = [
     primaryTo: '/members',
     secondaryLabel: 'Find a mentor',
     secondaryTo: '/mentors',
-    image: '/assets/brand/hero-network.webp',
-    imageAlt: 'Women Rise Legacy community and network',
+    image: '/assets/client/women-rise-conference-group.webp',
+    imageAlt: 'Women Rise Legacy members together at the conference',
     imageMode: 'cover',
     badgeTitle: 'Global sisterhood',
     badgeText: 'Connection that creates opportunity',
@@ -61,8 +61,8 @@ const defaultHeroSlides = [
     primaryTo: '/donate',
     secondaryLabel: 'Explore current needs',
     secondaryTo: '/current-needs',
-    image: '/assets/brand/event-community.webp',
-    imageAlt: 'Women Rise Legacy community impact event',
+    image: '/assets/client/women-rise-community-dinner.webp',
+    imageAlt: 'Women Rise Legacy members connecting at a community event',
     imageMode: 'cover',
     badgeTitle: 'Dignity-first support',
     badgeText: 'Verified needs and transparent impact',
@@ -71,9 +71,9 @@ const defaultHeroSlides = [
 ] as const;
 
 type HeroSlide = { eyebrow:string; title:string; text:string; primaryLabel:string; primaryTo:string; secondaryLabel:string; secondaryTo:string; image:string; imageAlt?:string; imageMode?:string; badgeTitle?:string; badgeText?:string; theme?:string };
-const defaultFounder = { eyebrow:'Founder-led movement', title:'Built to help women turn healing into leadership', text:'Women Rise Legacy brings community, mentorship, education, enterprise, and humanitarian service into one trusted ecosystem.', image:'/assets/brand/founder-transparent.png', imageAlt:'Founder of Women Rise Legacy Network', buttonLabel:'Read our story', buttonTo:'/about' };
+const defaultFounder = { eyebrow:'Founder-led movement', title:'Built to help women turn healing into leadership', text:'Women Rise Legacy brings community, mentorship, education, enterprise, and humanitarian service into one trusted ecosystem.', image:'/assets/client/women-rise-founder-portrait.webp', imageAlt:'Founder of Women Rise Legacy Network', buttonLabel:'Read our story', buttonTo:'/about' };
 const defaultCta = { eyebrow:'Your next chapter starts here', title:'Join a network built for women who are ready to heal, build, lead, and leave a legacy.', text:'Become a member, find a mentor, list your business, volunteer, or support a verified humanitarian need.', primaryLabel:'Explore membership', primaryTo:'/membership', secondaryLabel:'Make an impact', secondaryTo:'/get-involved' };
-const defaultGallery = { eyebrow:'A community in motion', title:'Leadership, connection, and real conversations', images:[{url:'/assets/brand/event-community.webp',alt:'Women Rise Legacy community event'},{url:'/assets/brand/event-panel.webp',alt:'Women Rise Legacy panel conversation'},{url:'/assets/brand/event-keynote.webp',alt:'Women Rise Legacy keynote'}] };
+const defaultGallery = { eyebrow:'A community in motion', title:'Leadership, connection, and real conversations', images:[{url:'/assets/client/women-rise-founder-brand-backdrop.webp',alt:'Women Rise Legacy founder beside the official brand backdrop'},{url:'/assets/client/women-rise-founder-speaking-beige.webp',alt:'Women Rise Legacy founder speaking on stage'},{url:'/assets/client/women-rise-conference-group.webp',alt:'Women Rise Legacy members at the conference'}] };
 const defaultSections = {
   seoTitle:'Women Rise Legacy Network',seoDescription:'A women-led network for mentorship, leadership, business visibility, community connection, and humanitarian impact.',
   trustItems:[{icon:'shield',text:'Verified community'},{icon:'heart',text:'Dignity-first support'},{icon:'network',text:'Global connections'}],
@@ -179,7 +179,7 @@ export default function Home() {
               key={item.image}
               aria-hidden={index !== activeSlide}
             >
-              <img src={item.image} alt={index === activeSlide ? item.imageAlt : ''}/>
+              <img src={item.image} alt={index === activeSlide ? item.imageAlt : ''} loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'auto'} decoding="async"/>
             </div>)}
             <div className="hero-image-shine"/>
             <div className="floating-card hero-badge-card">
@@ -206,13 +206,13 @@ export default function Home() {
 
     <div className="container stats brand-stats"><div className="stat"><strong>{stats.members}+</strong><span>{sections.statsLabels.members}</span></div><div className="stat"><strong>{stats.businesses}+</strong><span>{sections.statsLabels.businesses}</span></div><div className="stat"><strong>{stats.activeNeeds}+</strong><span>{sections.statsLabels.activeNeeds}</span></div><div className="stat"><strong>{stats.beneficiaries}+</strong><span>{sections.statsLabels.beneficiaries}</span></div></div>
 
-    <section className="section"><div className="container split founder-section"><div className="founder-portrait-wrap"><div className="portrait-halo"/><img className="founder-portrait" src={founderContent.image} alt={founderContent.imageAlt||'Founder of Women Rise Legacy Network'}/></div><div><SectionHeading eyebrow={founderContent.eyebrow} title={founderContent.title} text={founderContent.text}/><p>{sections.founderClosingText}</p><div className="pillar-mini-grid">{sections.founderPillars.map((item:any)=>{const Icon=homeIcons[item.icon]||Sparkles;return <div key={item.title}><Icon/><b>{item.title}</b><span>{item.text}</span></div>})}</div><Link className="text-link" to={founderContent.buttonTo}>{founderContent.buttonLabel} <ArrowRight size={16}/></Link></div></div></section>
+    <section className="section"><div className="container split founder-section"><div className="founder-portrait-wrap"><div className="portrait-halo"/><img className="founder-portrait" src={founderContent.image} alt={founderContent.imageAlt||'Founder of Women Rise Legacy Network'} loading="lazy" decoding="async"/></div><div><SectionHeading eyebrow={founderContent.eyebrow} title={founderContent.title} text={founderContent.text}/><p>{sections.founderClosingText}</p><div className="pillar-mini-grid">{sections.founderPillars.map((item:any)=>{const Icon=homeIcons[item.icon]||Sparkles;return <div key={item.title}><Icon/><b>{item.title}</b><span>{item.text}</span></div>})}</div><Link className="text-link" to={founderContent.buttonTo}>{founderContent.buttonLabel} <ArrowRight size={16}/></Link></div></div></section>
 
     <section className="section alt"><div className="container"><SectionHeading centered eyebrow={sections.pathways.eyebrow} title={sections.pathways.title} text={sections.pathways.text}/><div className="feature-grid four">{sections.pathways.items.map((item:any)=>{const Icon=homeIcons[item.icon]||Sparkles;return <Link className="feature feature-link" to={item.to} key={item.title}><span className="feature-icon"><Icon/></span><h3>{item.title}</h3><p>{item.text}</p></Link>})}</div></div></section>
 
     <section className="section"><div className="container"><div className="section-row"><SectionHeading eyebrow={sections.businesses.eyebrow} title={sections.businesses.title} text={sections.businesses.text}/><Link className="button ghost" to="/businesses">{sections.businesses.buttonLabel}</Link></div><div className="business-preview-grid">{businesses.length ? businesses.map(b => <Link className="business-preview" to={`/businesses/${b.slug}`} key={b.id}><img src={b.image_url || '/assets/brand/event-community.webp'} alt=""/><div><span>{b.industry}</span><h3>{b.name}</h3><p>{b.city}, {b.country}</p></div></Link>) : <div className="empty compact"><p>{sections.businesses.emptyText}</p></div>}</div></div></section>
 
-    {galleryContent.images.length > 0 && <section className="section media-strip"><div className="container"><SectionHeading centered eyebrow={galleryContent.eyebrow} title={galleryContent.title}/><div className="event-gallery">{galleryContent.images.map((image:any,index:number)=><img src={image.url} alt={image.alt||''} key={`${image.url}-${index}`}/>)}</div></div></section>}
+    {galleryContent.images.length > 0 && <section className="section media-strip"><div className="container"><SectionHeading centered eyebrow={galleryContent.eyebrow} title={galleryContent.title}/><div className="event-gallery">{galleryContent.images.map((image:any,index:number)=><img src={image.url} alt={image.alt||''} key={`${image.url}-${index}`} loading="lazy" decoding="async"/>)}</div></div></section>}
 
     <section className="section"><div className="container"><div className="section-row"><SectionHeading eyebrow={sections.events.eyebrow} title={sections.events.title} text={sections.events.text}/><Link className="button ghost" to="/events">{sections.events.buttonLabel}</Link></div><div className="event-card-grid">{events.length ? events.map(event => <article className="event-card" key={event.id}><img src={event.image_url || '/assets/brand/event-founder.webp'} alt=""/><div><span className="badge"><CalendarDays size={14}/>{new Date(event.start_at).toLocaleDateString()}</span><h3>{event.title}</h3><p>{event.location}</p><Link className="text-link" to="/events">{sections.events.detailLabel} <ArrowRight size={16}/></Link></div></article>) : <div className="empty compact"><p>{sections.events.emptyText}</p></div>}</div></div></section>
 
@@ -224,6 +224,6 @@ export default function Home() {
 
     {podcasts.length > 0 && <section className="section podcast-home-section"><div className="container"><div className="section-row"><SectionHeading eyebrow={sections.podcast.eyebrow} title={sections.podcast.title} text={sections.podcast.text}/><Link className="button ghost" to="/podcast">{sections.podcast.buttonLabel}</Link></div><div className="podcast-grid">{podcasts.map(episode=><Link className="podcast-card" to={`/podcast/${episode.slug}`} key={episode.id}><img src={episode.cover_image_url||'/assets/brand/event-panel.webp'} alt=""/><div><span className="eyebrow">Episode {episode.episode_number||sections.podcast.newEpisodeLabel}</span><h3>{episode.title}</h3><p>{episode.short_description}</p><span className="text-link">{sections.podcast.listenLabel} <ArrowRight size={16}/></span></div></Link>)}</div></div></section>}
 
-    <section className="section"><div className="container"><div className="cta legacy-cta"><div><span className="eyebrow">{ctaContent.eyebrow}</span><h2>{ctaContent.title}</h2><p>{ctaContent.text}</p></div><div className="cta-actions"><Link className="button" to={ctaContent.primaryTo}>{ctaContent.primaryLabel}</Link><Link className="button secondary" to={ctaContent.secondaryTo}>{ctaContent.secondaryLabel}</Link></div></div></div></section>
+    <section className="section legacy-cta-section"><div className="container"><div className="cta legacy-cta"><div className="legacy-cta-copy"><span className="eyebrow">{ctaContent.eyebrow}</span><h2>{ctaContent.title}</h2><p>{ctaContent.text}</p><div className="legacy-cta-highlights" aria-label="Membership benefits"><span><Users size={17}/> Trusted community</span><span><GraduationCap size={17}/> Mentorship and growth</span><span><HandHeart size={17}/> Meaningful impact</span></div></div><div className="legacy-cta-action-card"><div className="legacy-cta-action-heading"><span className="legacy-cta-action-icon"><Sparkles size={20}/></span><div><small>Choose your pathway</small><strong>Take the next step with confidence</strong></div></div><div className="cta-actions"><Link className="button legacy-cta-primary" to={ctaContent.primaryTo}>{ctaContent.primaryLabel}<ArrowRight size={18}/></Link><Link className="button secondary legacy-cta-secondary" to={ctaContent.secondaryTo}>{ctaContent.secondaryLabel}<ArrowRight size={18}/></Link></div><p className="legacy-cta-note">Explore the option that best matches your goals today.</p></div></div></div></section>
   </>;
 }

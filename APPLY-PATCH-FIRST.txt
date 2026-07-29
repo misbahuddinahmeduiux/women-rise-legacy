@@ -1,0 +1,13 @@
+PHASE 6 STEP 2 — APPLY TO YOUR CURRENT WORKING PROJECT
+
+Your current folder may still be named women-rise-legacy-phase-4, but it already contains Phase 5 and Phase 6 Step 1.
+
+1. Stop 2-start-project terminals.
+2. Copy everything from this extracted patch into the current project root.
+3. Choose Merge/Replace when Windows asks.
+4. No .env, server, database, or client-image files are included in this patch.
+5. Run 0-SETUP-PHASE-6-STEP-2.bat.
+6. Start with 2-start-project.bat.
+7. Open /admin and press Ctrl+F5.
+
+No Supabase SQL is required for this step.

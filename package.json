@@ -1,7 +1,7 @@
 {
-  "name": "women-rise-legacy-phase-5",
+  "name": "women-rise-legacy-phase-6",
   "private": true,
-  "version": "5.0.0",
+  "version": "6.0.0",
   "workspaces": [
     "client",
     "server"
@@ -12,7 +12,8 @@
     "dev:client": "npm run dev --workspace client",
     "build": "npm run build --workspace server && npm run build --workspace client",
     "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client",
-    "validate:phase5": "node scripts/validate-phase5.mjs"
+    "validate:phase5": "node scripts/validate-phase5.mjs",
+    "validate:phase6": "node scripts/validate-phase6.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

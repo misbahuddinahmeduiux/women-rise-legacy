@@ -27,13 +27,6 @@ function forbidToken(relativePath, token, label = token) {
 }
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    if (
-      entry.isDirectory() &&
-      ['node_modules', 'dist', '.git'].includes(entry.name)
-    ) {
-      return [];
-    }
-
     const path = join(directory, entry.name);
     return entry.isDirectory() ? [path, ...walk(path)] : [path];
   });

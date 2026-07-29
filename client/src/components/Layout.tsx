@@ -1,4 +1,4 @@
-import { ChevronDown, ExternalLink, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { ChevronDown, ExternalLink, LayoutDashboard, LogOut, Menu, UserRoundCheck, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,7 +73,7 @@ export function Layout() {
   const [announcement, setAnnouncement] = useState<any>({ enabled: false, text: '', linkLabel: '', linkUrl: '' });
   const [navigation, setNavigation] = useState<NavigationItem[]>(defaultNavigation);
   const [footerColumns, setFooterColumns] = useState<FooterColumn[]>(defaultFooterColumns);
-  const { user, signOut } = useAuth();
+  const { user, profileLoading, canAccessAdmin, canAccessMentor, signOut } = useAuth();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
 
@@ -96,13 +96,84 @@ export function Layout() {
     <header className={`site-header ${isAdmin ? 'admin-site-header' : ''}`}>
       <div className={`container nav-wrap ${isAdmin ? 'admin-header-wrap' : ''}`}>
         <Brand general={general} compact={isAdmin}/>
-        {isAdmin ? <div className="admin-header-actions"><Link className="admin-header-link" to="/"><ExternalLink/>View website</Link><Link className="admin-header-link" to="/dashboard"><LayoutDashboard/>Member dashboard</Link><button className="admin-header-link" onClick={() => signOut()}><LogOut/>Sign out</button></div> : <>
+        {isAdmin ? <div className="admin-header-actions"><Link className="admin-header-link" to="/"><ExternalLink/>View website</Link><Link className="admin-header-link" to="/dashboard"><LayoutDashboard/>Member dashboard</Link>{canAccessMentor && <Link className="admin-header-link" to="/mentor-dashboard"><UserRoundCheck/>Mentor workspace</Link>}<button className="admin-header-link" onClick={() => signOut()}><LogOut/>Sign out</button></div> : <>
           <button className="menu-btn" aria-label="Toggle menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button>
           <nav className={open ? 'nav open' : 'nav'} aria-label="Main navigation">
             {sorted(navigation).map((item) => item.type === 'dropdown'
               ? <Dropdown key={`${item.type}-${item.label}`} item={item} onNavigate={closeMenu}/>
               : item.to ? <NavLink className={item.style === 'button' ? 'button button-small donate-nav-button' : undefined} key={`${item.type}-${item.label}-${item.to}`} to={item.to} onClick={closeMenu}>{item.label}</NavLink> : null)}
-            {user ? <><Link to="/dashboard" onClick={closeMenu}>Dashboard</Link><button className="link-button" onClick={() => { closeMenu(); void signOut(); }}>Sign out</button></> : <Link to="/login" onClick={closeMenu}>Member Login</Link>}
+            {user ? (
+              profileLoading ? (
+                <span className="nav-account-loading">Loading workspace…</span>
+              ) : (
+                <details className="nav-dropdown account-dropdown">
+                  <summary className="nav-dropdown-trigger">
+                    Dashboard
+                    <ChevronDown size={15}/>
+                  </summary>
+                  <div className="nav-dropdown-menu account-dropdown-menu">
+                    {canAccessAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={(event) => {
+                          event.currentTarget.closest('details')?.removeAttribute('open');
+                          closeMenu();
+                        }}
+                      >
+                        <LayoutDashboard size={16}/>
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <Link
+                      to="/dashboard"
+                      onClick={(event) => {
+                        event.currentTarget.closest('details')?.removeAttribute('open');
+                        closeMenu();
+                      }}
+                    >
+                      <LayoutDashboard size={16}/>
+                      Member Dashboard
+                    </Link>
+                    {canAccessMentor && (
+                      <Link
+                        to="/mentor-dashboard"
+                        onClick={(event) => {
+                          event.currentTarget.closest('details')?.removeAttribute('open');
+                          closeMenu();
+                        }}
+                      >
+                        <UserRoundCheck size={16}/>
+                        Mentor Workspace
+                      </Link>
+                    )}
+                    <button
+                      className="link-button"
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '9px 11px',
+                        borderRadius: '9px',
+                        color: '#4d4050',
+                        fontWeight: 700,
+                        textAlign: 'left'
+                      }}
+                      onClick={(event) => {
+                        event.currentTarget.closest('details')?.removeAttribute('open');
+                        closeMenu();
+                        void signOut();
+                      }}
+                    >
+                      <LogOut size={16}/>
+                      Sign out
+                    </button>
+                  </div>
+                </details>
+              )
+            ) : (
+              <Link to="/login" onClick={closeMenu}>Member Login</Link>
+            )}
           </nav>
         </>}
       </div>

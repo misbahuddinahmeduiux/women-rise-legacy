@@ -1,9 +1,18 @@
+# Dependencies
 node_modules/
-dist/
+
+# Environment secrets — GitHub par push nahi hongi
 .env
 .env.local
+.env.*
+!.env.example
 client/.env
 server/.env
+
+# Temporary local test-user creator
+server/create-test-user.mjs
+
+# Logs and system files
 *.log
 .DS_Store
 
@@ -11,5 +20,5 @@ server/.env
 .vercel/
 .render/
 
-# Local deployment outputs
+# Local archives
 *.tgz

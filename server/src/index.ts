@@ -52,7 +52,7 @@ app.get('/api/health', (_req, res) =>
   res.json({
     status: 'ok',
     service: 'women-rise-legacy-api',
-    version: '5.0.0',
+    version: '6.0.0',
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   })
@@ -60,7 +60,7 @@ app.get('/api/health', (_req, res) =>
 app.get('/api/ready', async (_req, res) => {
   const { error } = await supabaseAdmin.from('site_settings').select('key', { head: true, count: 'exact' });
   if (error) return res.status(503).json({ status: 'not_ready', database: error.message });
-  return res.json({ status: 'ready', database: 'connected', version: '5.0.0' });
+  return res.json({ status: 'ready', database: 'connected', version: '6.0.0' });
 });
 app.use('/api/public', publicRouter);
 app.use('/api/phase4', phase4Router);
