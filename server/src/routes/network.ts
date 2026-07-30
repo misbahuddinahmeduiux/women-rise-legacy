@@ -7,6 +7,11 @@ import { requireUser } from '../middleware/auth.js';
 
 export const networkRouter = Router();
 
+const profileAvatarUrlSchema = z.string().trim().refine(
+  (value) => value === '' || value.startsWith('/assets/') || z.string().url().safeParse(value).success,
+  { message: 'Avatar image must be a full URL or an internal /assets/ path.' }
+);
+
 // Retained for organizations that still want an application-only membership path.
 // Paid checkout in Phase 4 activates membership automatically after verified payment.
 networkRouter.post('/membership-applications', async (req, res, next) => {
@@ -82,7 +87,7 @@ networkRouter.put('/profile', requireUser, async (req, res, next) => {
   try {
     const input = z.object({
       fullName: z.string().min(2), phone: z.string().optional().default(''), country: z.string().optional().default(''), city: z.string().optional().default(''),
-      avatarUrl: z.string().url().or(z.literal('')).optional(), headline: z.string().max(180).optional().default(''), bio: z.string().max(3000).optional().default(''),
+      avatarUrl: profileAvatarUrlSchema.optional(), headline: z.string().max(180).optional().default(''), bio: z.string().max(3000).optional().default(''),
       skills: z.union([z.array(z.string()), z.string()]).transform((value) => Array.isArray(value) ? value : value.split(',').map((item) => item.trim()).filter(Boolean)),
       linkedinUrl: z.string().url().or(z.literal('')).optional(), websiteUrl: z.string().url().or(z.literal('')).optional(), businessName: z.string().optional().default(''),
       isDirectoryVisible: z.boolean().default(false), timezone: z.string().optional().default(''),
