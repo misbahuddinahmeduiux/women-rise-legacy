@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireAdmin, requireUser } from '../middleware/auth.js';
+import { requirePermission, requireStaff, requireUser } from '../middleware/auth.js';
 import { supabaseAdmin } from '../lib/supabase.js';
 import { slugify } from '../lib/helpers.js';
 import { writeAudit } from '../lib/audit.js';
@@ -8,7 +8,16 @@ import { queueEmail } from '../lib/email.js';
 import { env } from '../config/env.js';
 
 export const adminRouter = Router();
-adminRouter.use(requireUser, requireAdmin);
+adminRouter.use(requireUser, requireStaff);
+adminRouter.use('/overview', requirePermission('view_overview'));
+for (const path of ['/current-needs','/campaigns','/sponsor-families','/impact-reports','/businesses','/products-services','/opportunities','/resources','/chapters','/network-events','/member-success-stories']) adminRouter.use(path, requirePermission('manage_content'));
+adminRouter.use('/members', requirePermission('view_members'));
+adminRouter.use('/network-applications', requirePermission('view_applications'));
+adminRouter.use('/email-queue', requirePermission('manage_email_queue'));
+adminRouter.use('/submissions', requirePermission('manage_submissions'));
+adminRouter.use('/donation-receipts', requirePermission('manage_donations'));
+adminRouter.use('/audit-logs', requirePermission('view_audit'));
+adminRouter.use('/site-settings', requirePermission('manage_settings'));
 
 adminRouter.get('/overview', async (_req, res, next) => {
   try {
@@ -85,9 +94,57 @@ crudRoutes('member-success-stories','member_success_stories',memberStorySchema,(
 
 
 adminRouter.get('/members', async (_req,res,next)=>{try{const {data,error}=await supabaseAdmin.from('profiles').select('*').order('created_at',{ascending:false});if(error)throw error;res.json(data)}catch(error){next(error)}});
-adminRouter.patch('/members/:id', async (req,res,next)=>{try{const input=z.object({membershipLevel:z.enum(['rise','legacy','elite']).nullable().optional(),membershipStatus:z.enum(['inactive','pending','trialing','active','past_due','paused','cancelled','expired']).optional(),isDirectoryVisible:z.boolean().optional(),isMentor:z.boolean().optional(),mentorExpertise:z.array(z.string()).optional(),mentorAvailability:z.string().optional(),role:z.enum(['member','mentor','volunteer','partner_representative','chapter_leader','donation_manager','content_manager','admin']).optional()}).parse(req.body);const payload:any={};if(input.membershipLevel!==undefined)payload.membership_level=input.membershipLevel;if(input.membershipStatus!==undefined)payload.membership_status=input.membershipStatus;if(input.isDirectoryVisible!==undefined)payload.is_directory_visible=input.isDirectoryVisible;if(input.isMentor!==undefined)payload.is_mentor=input.isMentor;if(input.mentorExpertise!==undefined)payload.mentor_expertise=input.mentorExpertise;if(input.mentorAvailability!==undefined)payload.mentor_availability=input.mentorAvailability;if(input.role!==undefined)payload.role=input.role;const before=await supabaseAdmin.from('profiles').select('*').eq('id',req.params.id).maybeSingle();const {data,error}=await supabaseAdmin.from('profiles').update(payload).eq('id',req.params.id).select().single();if(error)throw error;await writeAudit(req,{action:'update',entityType:'profiles',entityId:req.params.id,summary:'Updated member access and visibility',beforeData:before.data,afterData:data});res.json(data)}catch(error){next(error)}});
+adminRouter.patch('/members/:id', requirePermission('manage_members'), async (_req,res)=>res.status(410).json({error:'This legacy endpoint is disabled. Use /api/admin/security/members/:id/membership or account-status.'}));
 adminRouter.get('/network-applications', async (_req,res,next)=>{try{const [memberships,mentors,events]=await Promise.all([supabaseAdmin.from('membership_applications').select('*').order('created_at',{ascending:false}),supabaseAdmin.from('mentor_requests').select('*,mentor:profiles!mentor_requests_mentor_id_fkey(full_name)').order('created_at',{ascending:false}),supabaseAdmin.from('event_registrations').select('*,event:network_events(title)').order('created_at',{ascending:false})]);res.json({membershipApplications:memberships.data??[],mentorRequests:mentors.data??[],eventRegistrations:events.data??[]})}catch(error){next(error)}});
-adminRouter.patch('/network-applications/:type/:id/status', async (req,res,next)=>{try{const map:Record<string,string>={membership:'membership_applications',mentor:'mentor_requests',event:'event_registrations'};const table=map[req.params.type];if(!table)return res.status(400).json({error:'Unsupported application type.'});const status=(req.params.type==='membership'?z.enum(['new','under_review','approved','rejected','completed']):req.params.type==='mentor'?z.enum(['new','under_review','matched','approved','rejected','completed']):z.enum(['registered','waitlisted','attended','cancelled'])).parse(req.body.status);const before=await supabaseAdmin.from(table).select('*').eq('id',req.params.id).single();const {data,error}=await supabaseAdmin.from(table).update({status,updated_at:new Date().toISOString()}).eq('id',req.params.id).select().single();if(error)throw error;await supabaseAdmin.from('application_status_history').insert({application_type:req.params.type,application_id:req.params.id,old_status:before.data?.status||null,new_status:status,note:req.body.note||null,changed_by:req.profile!.id});await writeAudit(req,{action:'status_change',entityType:table,entityId:req.params.id,summary:`Changed status to ${status}`,beforeData:before.data,afterData:data});const email=data.email||data.requester_email;if(email)await queueEmail({to:email,name:data.full_name||data.requester_name,templateKey:'application_status',subject:`Application status: ${status.replaceAll('_',' ')}`,payload:{type:req.params.type,status}});res.json(data)}catch(error){next(error)}});
+adminRouter.patch('/network-applications/:type/:id/status', requirePermission('manage_applications'), async (req, res, next) => {
+  try {
+    const params = z.object({
+      type: z.enum(['membership', 'mentor', 'event']),
+      id: z.string().uuid()
+    }).parse(req.params);
+    const tableMap = {
+      membership: 'membership_applications',
+      mentor: 'mentor_requests',
+      event: 'event_registrations'
+    } as const;
+    const table = tableMap[params.type];
+    const status = (
+      params.type === 'membership'
+        ? z.enum(['new', 'under_review', 'approved', 'rejected', 'completed'])
+        : params.type === 'mentor'
+          ? z.enum(['new', 'under_review', 'matched', 'approved', 'rejected', 'completed'])
+          : z.enum(['registered', 'waitlisted', 'attended', 'cancelled'])
+    ).parse(req.body.status);
+    const before = await supabaseAdmin.from(table).select('*').eq('id', params.id).single();
+    const { data, error } = await supabaseAdmin.from(table).update({ status, updated_at: new Date().toISOString() }).eq('id', params.id).select().single();
+    if (error) throw error;
+    await supabaseAdmin.from('application_status_history').insert({
+      application_type: params.type,
+      application_id: params.id,
+      old_status: before.data?.status || null,
+      new_status: status,
+      note: req.body.note || null,
+      changed_by: req.profile!.id
+    });
+    await writeAudit(req, {
+      action: 'status_change',
+      entityType: table,
+      entityId: params.id,
+      summary: `Changed status to ${status}`,
+      beforeData: before.data,
+      afterData: data
+    });
+    const email = data.email || data.requester_email;
+    if (email) await queueEmail({
+      to: email,
+      name: data.full_name || data.requester_name,
+      templateKey: 'application_status',
+      subject: `Application status: ${status.replaceAll('_', ' ')}`,
+      payload: { type: params.type, status }
+    });
+    res.json(data);
+  } catch (error) { next(error); }
+});
 
 adminRouter.get('/submissions', async (_req, res, next) => {
   try {

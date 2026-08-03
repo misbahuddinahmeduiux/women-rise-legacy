@@ -7,10 +7,21 @@ import { completeMembershipPayment, priceForCycle, type MembershipPlanRow } from
 import { queueEmail } from '../lib/email.js';
 import { slugify } from '../lib/helpers.js';
 import { supabaseAdmin } from '../lib/supabase.js';
-import { requireAdmin, requireUser } from '../middleware/auth.js';
+import { requirePermission, requireStaff, requireUser } from '../middleware/auth.js';
 
 export const adminPhase4Router = Router();
-adminPhase4Router.use(requireUser, requireAdmin);
+adminPhase4Router.use(requireUser, requireStaff);
+adminPhase4Router.use('/overview', requirePermission('view_overview'));
+adminPhase4Router.use('/membership-plans', requirePermission('manage_memberships'));
+adminPhase4Router.use('/membership-payments', requirePermission('manage_memberships'));
+adminPhase4Router.use('/subscriptions', requirePermission('manage_memberships'));
+adminPhase4Router.use('/members', requirePermission('view_members'));
+adminPhase4Router.use('/mentorship', requirePermission('manage_matches'));
+adminPhase4Router.use('/podcast', requirePermission('manage_content'));
+adminPhase4Router.use('/website-content', requirePermission('manage_content'));
+adminPhase4Router.use('/content-options', requirePermission('manage_content'));
+adminPhase4Router.use('/media', requirePermission('manage_content'));
+adminPhase4Router.use('/email-templates', requirePermission('manage_content'));
 
 const optionalUrl = z.string().url().or(z.literal('')).optional().default('');
 const optionalText = z.string().optional().default('');
@@ -163,63 +174,7 @@ const inviteMemberSchema = z.object({
   mentorFeatured: z.boolean().default(false)
 });
 
-adminPhase4Router.post('/members/invite', async (req, res, next) => {
-  try {
-    const input = inviteMemberSchema.parse(req.body);
-    const invitation = await supabaseAdmin.auth.admin.inviteUserByEmail(input.email, {
-      redirectTo: `${env.APP_URL}/reset-password`,
-      data: { full_name: input.fullName, invited_role: input.role }
-    });
-    if (invitation.error || !invitation.data.user) throw invitation.error || new Error('Invitation could not be created.');
-    const userId = invitation.data.user.id;
-    const profilePayload = {
-      id: userId,
-      full_name: input.fullName,
-      role: input.role,
-      phone: input.phone || null,
-      country: input.country || null,
-      city: input.city || null,
-      headline: input.headline || null,
-      bio: input.bio || null,
-      is_mentor: input.role === 'mentor',
-      mentor_title: input.mentorTitle || null,
-      mentor_expertise: input.mentorExpertise || [],
-      mentor_availability: input.mentorAvailability || null,
-      mentor_session_type: input.mentorSessionType || null,
-      mentor_featured: input.mentorFeatured,
-      is_directory_visible: input.role === 'mentor',
-      membership_status: input.planId ? 'pending' : 'inactive'
-    };
-    const { data: profile, error } = await supabaseAdmin.from('profiles').upsert(profilePayload, { onConflict: 'id' }).select().single();
-    if (error) throw error;
-
-    if (input.planId) {
-      const planResult = await supabaseAdmin.from('membership_plans').select('*').eq('id', input.planId).single();
-      if (planResult.error) throw planResult.error;
-      const cycle = input.complimentaryBillingCycle || (planResult.data.one_time_enabled ? 'one_time' : planResult.data.yearly_enabled ? 'yearly' : 'monthly');
-      priceForCycle(planResult.data as MembershipPlanRow, cycle);
-      const payment = await supabaseAdmin.from('membership_payments').insert({
-        user_id: userId,
-        plan_id: input.planId,
-        billing_cycle: cycle,
-        provider: 'complimentary',
-        amount: 0,
-        currency: planResult.data.currency,
-        status: 'pending',
-        provider_session_id: `complimentary_${crypto.randomUUID()}`,
-        provider_payload: { assignedBy: req.profile!.id }
-      }).select().single();
-      if (payment.error) throw payment.error;
-      await completeMembershipPayment({ paymentId: payment.data.id, providerPayload: { complimentary: true } });
-    }
-
-    if (input.role === 'mentor') {
-      await queueEmail({ to: input.email, name: input.fullName, templateKey: 'mentor_invitation', subject: 'You are invited to mentor with Women Rise Legacy', payload: { mentorName: input.fullName, inviteUrl: `${env.APP_URL}/reset-password` } });
-    }
-    await writeAudit(req, { action: 'invite', entityType: 'profiles', entityId: userId, summary: `Invited ${input.role} ${input.email}`, afterData: profile });
-    res.status(201).json({ message: 'Invitation sent.', profile });
-  } catch (error) { next(error); }
-});
+adminPhase4Router.post('/members/invite', requirePermission('manage_invitations'), async (_req, res) => res.status(410).json({ error: 'Legacy invitation endpoint disabled. Use /api/admin/security/mentor-invitations or /api/admin/security/team/invite.' }));
 
 const memberUpdateSchema = z.object({
   fullName: z.string().min(2).optional(),
@@ -236,31 +191,19 @@ const memberUpdateSchema = z.object({
   mentorFeatured: z.boolean().optional()
 });
 
-adminPhase4Router.put('/members/:id', async (req, res, next) => {
-  try {
-    const input = memberUpdateSchema.parse(req.body);
-    const payload: Record<string, unknown> = {};
-    const map: Record<string, string> = { fullName: 'full_name', role: 'role', membershipStatus: 'membership_status', isDirectoryVisible: 'is_directory_visible', isMentor: 'is_mentor', headline: 'headline', bio: 'bio', mentorTitle: 'mentor_title', mentorExpertise: 'mentor_expertise', mentorAvailability: 'mentor_availability', mentorSessionType: 'mentor_session_type', mentorFeatured: 'mentor_featured' };
-    for (const [key, column] of Object.entries(map)) if ((input as any)[key] !== undefined) payload[column] = (input as any)[key];
-    if (input.role === 'mentor') payload.is_mentor = true;
-    const before = await supabaseAdmin.from('profiles').select('*').eq('id', req.params.id).single();
-    const { data, error } = await supabaseAdmin.from('profiles').update(payload).eq('id', req.params.id).select().single();
-    if (error) throw error;
-    await writeAudit(req, { action: 'update', entityType: 'profiles', entityId: req.params.id, summary: 'Updated member or mentor profile', beforeData: before.data, afterData: data });
-    res.json(data);
-  } catch (error) { next(error); }
-});
+adminPhase4Router.put('/members/:id', requirePermission('manage_members'), async (_req, res) => res.status(410).json({ error: 'Legacy combined member/mentor/role endpoint disabled. Use the separated security endpoints.' }));
 
-adminPhase4Router.post('/members/:id/complimentary-membership', async (req, res, next) => {
+adminPhase4Router.post('/members/:id/complimentary-membership', requirePermission('manage_memberships'), async (req, res, next) => {
   try {
+    const memberId = z.string().uuid().parse(req.params.id);
     const input = z.object({ planId: z.string().uuid(), billingCycle: z.enum(['monthly', 'yearly', 'one_time']) }).parse(req.body);
     const planResult = await supabaseAdmin.from('membership_plans').select('*').eq('id', input.planId).single();
     if (planResult.error) throw planResult.error;
     priceForCycle(planResult.data as MembershipPlanRow, input.billingCycle);
-    const payment = await supabaseAdmin.from('membership_payments').insert({ user_id: req.params.id, plan_id: input.planId, billing_cycle: input.billingCycle, provider: 'complimentary', amount: 0, currency: planResult.data.currency, status: 'pending', provider_session_id: `complimentary_${crypto.randomUUID()}`, provider_payload: { assignedBy: req.profile!.id } }).select().single();
+    const payment = await supabaseAdmin.from('membership_payments').insert({ user_id: memberId, plan_id: input.planId, billing_cycle: input.billingCycle, provider: 'complimentary', amount: 0, currency: planResult.data.currency, status: 'pending', provider_session_id: `complimentary_${crypto.randomUUID()}`, provider_payload: { assignedBy: req.profile!.id } }).select().single();
     if (payment.error) throw payment.error;
     const completed = await completeMembershipPayment({ paymentId: payment.data.id, providerPayload: { complimentary: true } });
-    await writeAudit(req, { action: 'assign_membership', entityType: 'profiles', entityId: req.params.id, summary: `Assigned complimentary ${planResult.data.name} membership`, afterData: completed });
+    await writeAudit(req, { action: 'assign_membership', entityType: 'profiles', entityId: memberId, summary: `Assigned complimentary ${planResult.data.name} membership`, afterData: completed });
     res.json(completed);
   } catch (error) { next(error); }
 });
@@ -275,11 +218,12 @@ adminPhase4Router.get('/membership-payments', async (_req, res, next) => {
 
 adminPhase4Router.post('/membership-payments/:id/mark-paid', async (req, res, next) => {
   try {
-    const payment = await supabaseAdmin.from('membership_payments').select('*').eq('id', req.params.id).single();
+    const paymentId = z.string().uuid().parse(req.params.id);
+    const payment = await supabaseAdmin.from('membership_payments').select('*').eq('id', paymentId).single();
     if (payment.error) throw payment.error;
     if (!['bank_transfer', 'complimentary'].includes(payment.data.provider)) return res.status(400).json({ error: 'Only bank-transfer or complimentary records can be marked paid manually.' });
     const completed = await completeMembershipPayment({ paymentId: payment.data.id, providerPaymentId: String(req.body.reference || payment.data.provider_session_id), providerPayload: { approvedBy: req.profile!.id, adminNote: req.body.note || null } });
-    await writeAudit(req, { action: 'mark_paid', entityType: 'membership_payments', entityId: req.params.id, summary: 'Marked membership payment as paid', afterData: completed });
+    await writeAudit(req, { action: 'mark_paid', entityType: 'membership_payments', entityId: paymentId, summary: 'Marked membership payment as paid', afterData: completed });
     res.json(completed);
   } catch (error) { next(error); }
 });
@@ -298,53 +242,72 @@ adminPhase4Router.get('/mentorship', async (_req, res, next) => {
       supabaseAdmin.from('mentor_requests').select('*,mentor:profiles!mentor_requests_mentor_id_fkey(id,full_name,headline)').order('created_at', { ascending: false }),
       supabaseAdmin.from('mentorship_matches').select('*,member:profiles!mentorship_matches_member_id_fkey(id,full_name,headline),mentor:profiles!mentorship_matches_mentor_id_fkey(id,full_name,headline)').order('created_at', { ascending: false }),
       supabaseAdmin.from('mentor_sessions').select('*,match:mentorship_matches(member:profiles!mentorship_matches_member_id_fkey(full_name),mentor:profiles!mentorship_matches_mentor_id_fkey(full_name))').order('scheduled_at', { ascending: false }),
-      supabaseAdmin.from('profiles').select('id,full_name,headline,mentor_expertise,mentor_availability,mentor_featured').eq('is_mentor', true).order('full_name'),
-      supabaseAdmin.from('profiles').select('id,full_name,headline,membership_level,membership_status').in('membership_status', ['active', 'trialing']).order('full_name')
+      supabaseAdmin.from('mentor_profiles').select('user_id,professional_title,expertise,availability,maximum_mentees,profile_status,is_active,directory_visible,profile:profiles!mentor_profiles_user_id_fkey(id,full_name,headline,email_normalized)').eq('profile_status','approved').eq('is_active',true).order('created_at'),
+      supabaseAdmin.from('profiles').select('id,full_name,headline,membership_level,membership_status,account_status').eq('account_status','active').in('membership_status', ['active', 'trialing']).order('full_name')
     ]);
+    for (const result of [requests,matches,sessions,mentors,members]) if (result.error) throw result.error;
     res.json({ requests: requests.data ?? [], matches: matches.data ?? [], sessions: sessions.data ?? [], mentors: mentors.data ?? [], members: members.data ?? [] });
   } catch (error) { next(error); }
 });
 
 adminPhase4Router.post('/mentorship/matches', async (req, res, next) => {
   try {
-    const input = z.object({ requestId: z.string().uuid().or(z.literal('')).optional(), memberId: z.string().uuid(), mentorId: z.string().uuid(), goals: optionalText, priority: z.enum(['standard', 'priority', 'private']).default('standard'), startsAt: z.string().datetime().or(z.literal('')).optional(), adminNotes: optionalText }).parse(req.body);
-    const mentor = await supabaseAdmin.from('profiles').select('id,full_name,is_mentor').eq('id', input.mentorId).single();
-    if (mentor.error || !mentor.data.is_mentor) return res.status(400).json({ error: 'Selected profile is not an active mentor.' });
-    const { data, error } = await supabaseAdmin.from('mentorship_matches').insert({ request_id: input.requestId || null, member_id: input.memberId, mentor_id: input.mentorId, assigned_by: req.profile!.id, goals: input.goals || null, priority: input.priority, starts_at: input.startsAt || null, admin_notes: input.adminNotes || null, status: 'pending_mentor' }).select('*,member:profiles!mentorship_matches_member_id_fkey(full_name),mentor:profiles!mentorship_matches_mentor_id_fkey(full_name)').single();
+    const input = z.object({ requestId: z.string().uuid().or(z.literal('')).optional(), memberId: z.string().uuid(), mentorId: z.string().uuid(), goals: optionalText, priority: z.enum(['standard', 'priority', 'private']).default('standard'), adminNotes: optionalText }).parse(req.body);
+    const mentorProfile = await supabaseAdmin.from('mentor_profiles').select('user_id,profile_status,is_active,maximum_mentees,profile:profiles!mentor_profiles_user_id_fkey(full_name,email_normalized,account_status)').eq('user_id', input.mentorId).single();
+    if (mentorProfile.error || mentorProfile.data.profile_status !== 'approved' || !mentorProfile.data.is_active || (mentorProfile.data.profile as any)?.account_status !== 'active') return res.status(400).json({ error: 'Selected profile is not an approved active mentor.' });
+    const openCount = await supabaseAdmin.from('mentorship_matches').select('*',{count:'exact',head:true}).eq('mentor_id',input.mentorId).in('status',['pending_mentor','active']);
+    if (openCount.error) throw openCount.error;
+    if ((openCount.count ?? 0) >= Number(mentorProfile.data.maximum_mentees || 3)) return res.status(409).json({ error: 'This mentor has reached their current mentee capacity.' });
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin.from('mentorship_matches').insert({ request_id: input.requestId || null, member_id: input.memberId, mentor_id: input.mentorId, assigned_by: req.profile!.id, goals: input.goals || null, priority: input.priority, admin_notes: input.adminNotes || null, status: 'pending_mentor', proposed_at: now, mentor_notified_at: now }).select('*,member:profiles!mentorship_matches_member_id_fkey(full_name),mentor:profiles!mentorship_matches_mentor_id_fkey(full_name,email_normalized)').single();
     if (error) throw error;
     if (input.requestId) await supabaseAdmin.from('mentor_requests').update({ mentor_id: input.mentorId, status: 'matched' }).eq('id', input.requestId);
-    const user = await supabaseAdmin.auth.admin.getUserById(input.memberId);
-    if (user.data.user?.email) await queueEmail({ to: user.data.user.email, name: data.member?.full_name, templateKey: 'mentor_match', subject: 'Your Women Rise Legacy mentorship match', payload: { memberName: data.member?.full_name, mentorName: data.mentor?.full_name } });
-    await writeAudit(req, { action: 'create', entityType: 'mentorship_matches', entityId: data.id, summary: `Matched ${data.member?.full_name} with ${data.mentor?.full_name}`, afterData: data });
+    if ((data.mentor as any)?.email_normalized) await queueEmail({ to: (data.mentor as any).email_normalized, name: (data.mentor as any).full_name, templateKey: 'mentor_match_proposed', subject: 'A mentorship match needs your response', payload: { memberName: (data.member as any)?.full_name, mentorDashboardUrl: `${env.APP_URL}/mentor-dashboard` } });
+    await writeAudit(req, { action: 'match_proposed', entityType: 'mentorship_matches', entityId: data.id, summary: `Proposed ${(data.member as any)?.full_name} to ${(data.mentor as any)?.full_name}`, afterData: data });
     res.status(201).json(data);
   } catch (error) { next(error); }
 });
 
 adminPhase4Router.patch('/mentorship/matches/:id/status', async (req, res, next) => {
   try {
-    const status = z.enum(['pending_mentor', 'active', 'paused', 'completed', 'declined', 'cancelled']).parse(req.body.status);
-    const { data, error } = await supabaseAdmin.from('mentorship_matches').update({ status, starts_at: status === 'active' ? new Date().toISOString() : undefined, ended_at: ['completed', 'cancelled', 'declined'].includes(status) ? new Date().toISOString() : null }).eq('id', req.params.id).select().single();
+    const status = z.enum(['paused', 'completed', 'cancelled']).parse(req.body.status);
+    const before = await supabaseAdmin.from('mentorship_matches').select('*').eq('id', req.params.id).single();
+    if (before.error) throw before.error;
+    if (before.data.status === 'pending_mentor') return res.status(409).json({ error: 'Only the mentor can accept or decline a pending match.' });
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin.from('mentorship_matches').update({ status, ended_at: ['completed','cancelled'].includes(status) ? now : null, closed_at: ['completed','cancelled'].includes(status) ? now : null }).eq('id', req.params.id).select().single();
     if (error) throw error;
-    await writeAudit(req, { action: 'status_change', entityType: 'mentorship_matches', entityId: req.params.id, summary: `Changed mentorship match to ${status}`, afterData: data });
+    await writeAudit(req, { action: 'match_status_change', entityType: 'mentorship_matches', entityId: req.params.id, summary: `Changed mentorship match to ${status}`, beforeData:before.data, afterData: data });
     res.json(data);
   } catch (error) { next(error); }
 });
 
-adminPhase4Router.post('/mentorship/sessions', async (req, res, next) => {
+adminPhase4Router.post('/mentorship/sessions', requirePermission('manage_sessions'), async (req, res, next) => {
   try {
     const input = z.object({ matchId: z.string().uuid(), scheduledAt: z.string().datetime(), durationMinutes: z.coerce.number().int().min(15).max(480).default(60), meetingUrl: optionalUrl, location: optionalText, agenda: optionalText }).parse(req.body);
+    const match = await supabaseAdmin.from('mentorship_matches').select('id,status,mentor_id,mentor_accepted_at,member:profiles!mentorship_matches_member_id_fkey(account_status)').eq('id',input.matchId).single();
+    if (match.error) throw match.error;
+    if (match.data.status !== 'active' || !match.data.mentor_accepted_at) return res.status(409).json({ error: 'Session scheduling requires an active mentor-accepted match.' });
+    const mentorResult = await supabaseAdmin.from('mentor_profiles').select('profile_status,is_active').eq('user_id',match.data.mentor_id).single();
+    if (mentorResult.error) throw mentorResult.error;
+    const mentor = mentorResult.data as any; const member = match.data.member as any;
+    if (mentor?.profile_status !== 'approved' || !mentor?.is_active || member?.account_status !== 'active') return res.status(409).json({ error: 'Both participants and the mentor profile must be active.' });
     const { data, error } = await supabaseAdmin.from('mentor_sessions').insert({ match_id: input.matchId, scheduled_at: input.scheduledAt, duration_minutes: input.durationMinutes, meeting_url: input.meetingUrl || null, location: input.location || null, agenda: input.agenda || null, created_by: req.profile!.id }).select().single();
     if (error) throw error;
-    await writeAudit(req, { action: 'create', entityType: 'mentor_sessions', entityId: data.id, summary: 'Scheduled mentorship session', afterData: data });
+    await writeAudit(req, { action: 'session_scheduled', entityType: 'mentor_sessions', entityId: data.id, summary: 'Scheduled mentorship session', afterData: data });
     res.status(201).json(data);
   } catch (error) { next(error); }
 });
 
-adminPhase4Router.patch('/mentorship/sessions/:id/status', async (req, res, next) => {
+adminPhase4Router.patch('/mentorship/sessions/:id/status', requirePermission('manage_sessions'), async (req, res, next) => {
   try {
+    const sessionId = z.string().uuid().parse(req.params.id);
     const input = z.object({ status: z.enum(['scheduled', 'completed', 'cancelled', 'no_show']), mentorPrivateNotes: optionalText, memberNotes: optionalText }).parse(req.body);
-    const { data, error } = await supabaseAdmin.from('mentor_sessions').update({ status: input.status, mentor_private_notes: input.mentorPrivateNotes || null, member_notes: input.memberNotes || null }).eq('id', req.params.id).select().single();
+    const before = await supabaseAdmin.from('mentor_sessions').select('*').eq('id', sessionId).single();
+    if (before.error) throw before.error;
+    const { data, error } = await supabaseAdmin.from('mentor_sessions').update({ status: input.status, mentor_private_notes: input.mentorPrivateNotes || null, member_notes: input.memberNotes || null }).eq('id', sessionId).select().single();
     if (error) throw error;
+    await writeAudit(req, { action: 'session_status_changed', entityType: 'mentor_sessions', entityId: sessionId, summary: `Changed mentorship session to ${input.status}`, beforeData: before.data, afterData: data });
     res.json(data);
   } catch (error) { next(error); }
 });

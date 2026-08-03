@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, BadgeCheck, CalendarClock, CheckCircle2, Clock3, MessageSquareText,
   Sparkles, Target, UserCheck, Users, XCircle
@@ -8,7 +8,7 @@ import { ErrorBox, Loader, SuccessBox } from '../components/UI';
 import { Seo } from '../components/Seo';
 import { api } from '../lib/api';
 
-type MentorDashboardData = { profile: any; matches: any[]; sessions: any[] };
+type MentorDashboardData = { profile: any; mentorProfile?: any; matches: any[]; sessions: any[] };
 
 function statusLabel(value: string) {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -48,8 +48,8 @@ export default function MentorDashboard() {
     .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
   const completedSessions = data.sessions.filter((session) => session.status === 'completed');
   const nextSession = upcomingSessions[0];
-  const availability = data.profile.mentor_availability || 'Availability not published';
-  const expertise: string[] = data.profile.mentor_expertise || [];
+  const availability = data.mentorProfile?.availability || data.profile.mentor_availability || 'Availability not published';
+  const expertise = useMemo(() => data.mentorProfile?.expertise || data.profile.mentor_expertise || [], [data.mentorProfile?.expertise, data.profile.mentor_expertise]);
 
   return <section className="dashboard-page mentor-dashboard-v2">
     <Seo title="Mentor Dashboard" description="Manage Women Rise Legacy mentorship matches and sessions." noIndex />
@@ -59,7 +59,7 @@ export default function MentorDashboard() {
           <span className="mentor-kicker"><BadgeCheck />Verified mentor workspace</span>
           <h1>Welcome, {data.profile.full_name || 'Mentor'}.</h1>
           <p>Manage new requests, active mentees, upcoming sessions and the guidance you are contributing to the network.</p>
-          <div className="mentor-hero-actions"><Link to="/mentors" className="mentor-secondary-action">View public mentor directory<ArrowRight /></Link><Link to="/dashboard" className="mentor-secondary-action">Member dashboard</Link>{data.profile.role === 'admin' && <Link to="/admin" className="mentor-secondary-action">Admin workspace</Link>}</div>
+          <div className="mentor-hero-actions"><Link to="/mentors" className="mentor-secondary-action">View public mentor directory<ArrowRight /></Link><Link to="/dashboard" className="mentor-secondary-action">Member dashboard</Link></div>
         </div>
         <div className="mentor-next-session-card">
           <span><CalendarClock />Next session</span>
@@ -79,7 +79,7 @@ export default function MentorDashboard() {
       <section className="mentor-profile-summary">
         <div><span className="eyebrow">Mentor profile</span><h2>Your expertise and availability</h2><p>Keep your member profile current so the team can make relevant, responsible matches.</p></div>
         <div className="mentor-profile-details"><span><Clock3 />{availability}</span><div className="tag-row">{expertise.length ? expertise.map((topic: string) => <span key={topic}>{topic}</span>) : <span>Expertise not added</span>}</div></div>
-        <Link className="button ghost" to="/dashboard#profile">Edit profile</Link>
+        <Link className="button ghost" to="/mentor-onboarding">Edit mentor profile</Link>
       </section>
 
       <div className="mentor-dashboard-grid">

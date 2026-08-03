@@ -22,10 +22,10 @@ function PasswordField({ label, name, autoComplete, minLength = 6 }: { label: st
 
 export function Login() {
   const { user, signIn } = useAuth(); const navigate = useNavigate(); const [error, setError] = useState(''); const [loading, setLoading] = useState(false);
-  if (user) return <Navigate to="/workspace" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setLoading(true); setError(''); const form = new FormData(event.currentTarget);
-    try { await signIn(String(form.get('email')), String(form.get('password'))); navigate('/workspace'); }
+    try { await signIn(String(form.get('email')), String(form.get('password'))); navigate('/dashboard'); }
     catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Login failed.'); }
     finally { setLoading(false); }
   }
@@ -34,7 +34,7 @@ export function Login() {
 
 export function Register() {
   const { user, signUp } = useAuth(); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [loading, setLoading] = useState(false);
-  if (user) return <Navigate to="/workspace" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setLoading(true); setError(''); setSuccess(''); const form = new FormData(event.currentTarget);
     if (form.get('password') !== form.get('confirmPassword')) { setError('Passwords do not match.'); setLoading(false); return; }
@@ -53,6 +53,6 @@ export function ForgotPassword() {
 
 export function ResetPassword() {
   const { updatePassword } = useAuth(); const navigate = useNavigate(); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [loading, setLoading] = useState(false);
-  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); setError(''); const form = new FormData(event.currentTarget); const password = String(form.get('password')); if (password !== String(form.get('confirmPassword'))) { setError('Passwords do not match.'); setLoading(false); return; } try { await updatePassword(password); setSuccess('Password updated successfully. Redirecting to your dashboard…'); setTimeout(() => navigate('/workspace'), 1200); } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Password could not be updated.'); } finally { setLoading(false); } }
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); setError(''); const form = new FormData(event.currentTarget); const password = String(form.get('password')); if (password !== String(form.get('confirmPassword'))) { setError('Passwords do not match.'); setLoading(false); return; } try { await updatePassword(password); setSuccess('Password updated successfully. Redirecting to your dashboard…'); setTimeout(() => navigate('/dashboard'), 1200); } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Password could not be updated.'); } finally { setLoading(false); } }
   return <><Seo title="Choose New Password" description="Choose a new secure account password." noIndex /><AuthFrame mode="recovery" eyebrow="Secure update" title="Choose a new password" text="Use at least eight characters and keep this password private.">{error && <ErrorBox message={error} />}{success && <SuccessBox message={success} />}<form className="auth-professional-form" onSubmit={submit}><PasswordField label="New password" name="password" autoComplete="new-password" minLength={8} /><PasswordField label="Confirm password" name="confirmPassword" autoComplete="new-password" minLength={8} /><button className="button auth-submit" disabled={loading}>{loading ? 'Updating…' : <>Update password<ArrowRight /></>}</button></form></AuthFrame></>;
 }

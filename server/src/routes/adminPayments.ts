@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireAdmin, requireUser } from '../middleware/auth.js';
+import { requirePermission, requireStaff, requireUser } from '../middleware/auth.js';
 import { supabaseAdmin } from '../lib/supabase.js';
 import { writeAudit } from '../lib/audit.js';
 import {
@@ -15,7 +15,7 @@ import {
 import { queueDonationReceiptEmail } from '../lib/donationReceipts.js';
 
 export const adminPaymentsRouter = Router();
-adminPaymentsRouter.use(requireUser, requireAdmin);
+adminPaymentsRouter.use(requireUser, requireStaff, requirePermission('manage_payments'));
 
 const providerSchema = z.enum(['stripe', 'paypal', 'bank_transfer']);
 const connectSchema = z.object({

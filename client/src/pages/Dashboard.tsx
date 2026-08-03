@@ -1,9 +1,9 @@
-import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
+import { type CSSProperties, type FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, Bell, BookOpenCheck, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, CircleDollarSign, Crown, Download, HandHeart, LayoutDashboard,
   LockKeyhole, Pencil, ReceiptText, Save, Sparkles, Target, UserRoundCheck,
-  Users, WalletCards, XCircle, ShieldCheck
+  Users, WalletCards, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Field, TextArea } from '../components/FormFields';
@@ -29,7 +29,7 @@ function displayStatus(value?: string | null) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, access } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
@@ -93,16 +93,14 @@ export default function Dashboard() {
   const displayName = p.full_name || user?.email?.split('@')[0] || 'Member';
   const currentPlan = p.plan?.name || (p.membership_level ? displayStatus(p.membership_level) : 'No active plan');
 
-  const onboarding: OnboardingItem[] = [
+  const onboarding: OnboardingItem[] = useMemo(() => [
     { label: 'Email verified', complete: Boolean(user?.email_confirmed_at), to: '/dashboard', note: 'Your secure account is ready.' },
     { label: 'Complete your profile', complete: profileScore >= 75, to: '/dashboard#profile', note: `${profileScore}% profile completion` },
     { label: 'Choose membership', complete: isActiveMember, to: '/membership', note: isActiveMember ? `${currentPlan} is active` : 'Unlock network access' },
     { label: 'Directory visibility', complete: Boolean(p.is_directory_visible), to: '/dashboard#profile', note: p.is_directory_visible ? 'Your profile can be discovered' : 'Enable when your profile is ready' },
     { label: 'Explore the network', complete: data.eventRegistrations.length > 0 || data.resources.length > 0, to: '/resources', note: 'Resources, events and connections' }
-  ];
+  ], [user?.email_confirmed_at, profileScore, isActiveMember, currentPlan, p.is_directory_visible, data.eventRegistrations.length, data.resources.length]);
   const onboardingDone = onboarding.filter((item) => item.complete).length;
-  const canAccessAdmin = ['admin', 'content_manager', 'donation_manager'].includes(p.role);
-  const canAccessMentor = Boolean(p.is_mentor || p.role === 'mentor' || p.role === 'admin');
 
   const planActions = p.membership_level === 'elite'
     ? [{ to: '/mentor-request', label: 'Priority mentorship', Icon: Crown }, { to: '/events', label: 'Premium events', Icon: CalendarDays }, { to: '/resources', label: 'Elite resources', Icon: BookOpenCheck }]
@@ -121,8 +119,7 @@ export default function Dashboard() {
           <div className="member-command-actions">
             {!isActiveMember && <Link className="member-primary-action" to="/membership"><Crown />Choose membership<ArrowRight /></Link>}
             <button className="member-secondary-action" onClick={() => setEditing(true)}><Pencil />Update profile</button>
-            {canAccessAdmin && <Link className="member-secondary-action" to="/admin"><ShieldCheck />Admin workspace</Link>}
-            {canAccessMentor && <Link className="member-secondary-action" to="/mentor-dashboard"><UserRoundCheck />Mentor workspace</Link>}
+            {access?.mentorStatus && <Link className="member-secondary-action" to={access.mentorStatus === 'approved' && access.mentorActive ? '/mentor-dashboard' : '/mentor-onboarding'}><UserRoundCheck />{access.mentorStatus === 'approved' && access.mentorActive ? 'Mentor workspace' : 'Complete mentor profile'}</Link>}
           </div>
         </div>
         <div className="member-plan-card">

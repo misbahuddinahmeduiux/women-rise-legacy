@@ -5,6 +5,8 @@ import { StructuredEditor, type StructuredValue } from '../components/Structured
 import { api } from '../lib/api';
 import AdminPayments from './AdminPayments';
 import AdminPhase5 from './AdminPhase5';
+import { InvitationsAdmin, MentorsAdmin, SecureMembersAdmin, TeamPermissionsAdmin } from './AdminSecurity';
+import { useAuth } from '../contexts/AuthContext';
 
 type FieldConfig={name:string;label:string;type?:'text'|'textarea'|'number'|'date'|'datetime-local'|'checkbox'|'select';options?:[string,string][];required?:boolean;defaultValue?:any};
 type ModuleConfig={key:string;label:string;endpoint:string;titleKey:string;subtitleKey?:string;fields:FieldConfig[];columns:[string,string][]};
@@ -61,7 +63,7 @@ function Overview({onNavigate}:{onNavigate:(key:string)=>void}){
 
   return <div className="admin-content admin-overview-v2">
     <section className="admin-overview-hero">
-      <div className="admin-overview-hero-copy"><span className="admin-kicker"><Activity/>Operations command centre</span><h1>Good to see you. Your network is ready to manage.</h1><p>Track membership, foundation programmes, content, events and payments from one focused workspace.</p><div className="admin-hero-actions"><button className="admin-primary-action" onClick={()=>onNavigate('applications')}><FileText/>Review applications<ArrowUpRight/></button><button className="admin-secondary-action" onClick={()=>onNavigate('phase5')}><Sparkles/>Open website studio</button></div></div>
+      <div className="admin-overview-hero-copy"><span className="admin-kicker"><Activity/>Operations command centre</span><h1>Good to see you. Your network is ready to manage.</h1><p>Track membership, foundation programmes, content, events and payments from one focused workspace.</p><div className="admin-hero-actions"><button className="admin-primary-action" onClick={()=>onNavigate('applications')}><FileText/>Review applications<ArrowUpRight/></button><button className="admin-secondary-action" onClick={()=>onNavigate('phase5')}><Sparkles/>Open Website Studio</button></div></div>
       <div className="admin-overview-date"><span>{today}</span><strong>{reviewTotal}</strong><small>items in review queues</small><div><CheckCircle2/>Live data connected</div></div>
     </section>
 
@@ -79,10 +81,8 @@ function Overview({onNavigate}:{onNavigate:(key:string)=>void}){
   </div>
 }
 
-function MembersAdmin(){const [rows,setRows]=useState<any[]>([]);const [error,setError]=useState('');const load=()=>api<any[]>('/admin/members').then(setRows).catch(e=>setError(e.message));useEffect(()=>{void load()},[]);async function patch(id:string,payload:any){try{await api(`/admin/members/${id}`,{method:'PATCH',body:JSON.stringify(payload)});load()}catch(e:any){setError(e.message)}}return <div className="admin-content"><div className="admin-page-heading"><div><span className="eyebrow">Community management</span><h1>Members</h1></div></div>{error&&<ErrorBox message={error}/>}<div className="member-admin-grid">{rows.map(m=><article key={m.id}><img src={m.avatar_url||'/assets/brand/logo-mark.webp'} alt=""/><div><h3>{m.full_name||'Unnamed member'}</h3><p>{m.headline||m.role}</p><small>{m.city||'—'}, {m.country||'—'}</small></div><label>Membership<select value={m.membership_level||''} onChange={e=>patch(m.id,{membershipLevel:e.target.value||null})}><option value="">None</option><option value="rise">Rise</option><option value="legacy">Legacy</option><option value="elite">Elite</option></select></label><label>Status<select value={m.membership_status||'inactive'} onChange={e=>patch(m.id,{membershipStatus:e.target.value})}><option value="inactive">Inactive</option><option value="pending">Pending</option><option value="active">Active</option><option value="paused">Paused</option><option value="expired">Expired</option></select></label><label className="checkbox"><input type="checkbox" checked={m.is_directory_visible} onChange={e=>patch(m.id,{isDirectoryVisible:e.target.checked})}/>Directory visible</label><label className="checkbox"><input type="checkbox" checked={m.is_mentor} onChange={e=>patch(m.id,{isMentor:e.target.checked,role:e.target.checked?'mentor':'member'})}/>Approved mentor</label></article>)}</div></div>}
-
-function ApplicationsAdmin(){const [data,setData]=useState<any|null>(null);const [error,setError]=useState('');const load=()=>api<any>('/admin/network-applications').then(setData).catch(e=>setError(e.message));useEffect(()=>{void load()},[]);async function status(type:string,id:string,value:string){await api(`/admin/network-applications/${type}/${id}/status`,{method:'PATCH',body:JSON.stringify({status:value})});load()}if(!data)return <Loader/>;return <div className="admin-content"><div className="admin-page-heading"><div><span className="eyebrow">Review queue</span><h1>Network applications</h1></div></div>{error&&<ErrorBox message={error}/>}<ApplicationTable title="Membership applications" rows={data.membershipApplications} type="membership" status={status} columns={['full_name','email','requested_level','professional_goal']}/><ApplicationTable title="Mentor requests" rows={data.mentorRequests} type="mentor" status={status} columns={['requester_name','requester_email','preferred_topics','goals']}/><ApplicationTable title="Event registrations" rows={data.eventRegistrations} type="event" status={status} columns={['full_name','email','status']}/></div>}
-function ApplicationTable({title,rows,type,status,columns}:{title:string;rows:any[];type:string;status:(t:string,id:string,v:string)=>void;columns:string[]}){const options=type==='membership'?['new','under_review','approved','rejected','completed']:type==='mentor'?['new','under_review','matched','approved','rejected','completed']:['registered','waitlisted','attended','cancelled'];return <section className="application-section"><h2>{title}</h2><div className="admin-table-wrap"><table><thead><tr>{columns.map(c=><th key={c}>{c.replaceAll('_',' ')}</th>)}<th>Status</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}>{columns.map(c=><td key={c}>{String(r[c]??'—').slice(0,180)}</td>)}<td><select value={r.status} onChange={e=>status(type,r.id,e.target.value)}>{options.map(v=><option key={v}>{v}</option>)}</select></td></tr>)}{!rows.length&&<tr><td colSpan={columns.length+1}>No records.</td></tr>}</tbody></table></div></section>}
+function ApplicationsAdmin(){const {hasPermission}=useAuth();const canEdit=hasPermission('manage_applications');const [data,setData]=useState<any|null>(null);const [error,setError]=useState('');const load=()=>api<any>('/admin/network-applications').then(setData).catch(e=>setError(e.message));useEffect(()=>{void load()},[]);async function status(type:string,id:string,value:string){await api(`/admin/network-applications/${type}/${id}/status`,{method:'PATCH',body:JSON.stringify({status:value})});load()}if(!data)return <Loader/>;return <div className="admin-content"><div className="admin-page-heading"><div><span className="eyebrow">Review queue</span><h1>Network applications</h1></div></div>{error&&<ErrorBox message={error}/>}<ApplicationTable title="Membership applications" rows={data.membershipApplications} type="membership" status={status} editable={canEdit} columns={['full_name','email','requested_level','professional_goal']}/><ApplicationTable title="Mentor requests" rows={data.mentorRequests} type="mentor" status={status} editable={canEdit} columns={['requester_name','requester_email','preferred_topics','goals']}/><ApplicationTable title="Event registrations" rows={data.eventRegistrations} type="event" status={status} editable={canEdit} columns={['full_name','email','status']}/></div>}
+function ApplicationTable({title,rows,type,status,columns,editable}:{title:string;rows:any[];type:string;status:(t:string,id:string,v:string)=>void;columns:string[];editable:boolean}){const options=type==='membership'?['new','under_review','approved','rejected','completed']:type==='mentor'?['new','under_review','matched','approved','rejected','completed']:['registered','waitlisted','attended','cancelled'];return <section className="application-section"><h2>{title}</h2><div className="admin-table-wrap"><table><thead><tr>{columns.map(c=><th key={c}>{c.replaceAll('_',' ')}</th>)}<th>Status</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}>{columns.map(c=><td key={c}>{String(r[c]??'—').slice(0,180)}</td>)}<td><select value={r.status} disabled={!editable} onChange={e=>status(type,r.id,e.target.value)}>{options.map(v=><option key={v}>{v}</option>)}</select></td></tr>)}{!rows.length&&<tr><td colSpan={columns.length+1}>No records.</td></tr>}</tbody></table></div></section>}
 
 function SubmissionsAdmin(){const [data,setData]=useState<any|null>(null);const [error,setError]=useState('');const load=()=>api<any>('/admin/submissions').then(setData).catch(e=>setError(e.message));useEffect(()=>{void load()},[]);async function updateStatus(type:string,id:string,status:string){try{await api(`/admin/submissions/${type}/${id}/status`,{method:'PATCH',body:JSON.stringify({status})});load()}catch(e){setError(e instanceof Error?e.message:'Status could not be updated.')}}if(!data)return <Loader/>;const groups=[['Contact messages','contact',data.contacts],['Item donations','item',data.itemDonations],['Assistance requests','assistance',data.assistanceRequests],['Volunteers','volunteer',data.volunteers],['Partners','partner',data.partners],['Shipments','shipment',data.shipments]];return <div className="admin-content"><div className="admin-page-heading"><div><span className="eyebrow">Foundation workflow</span><h1>Submissions</h1></div></div>{error&&<ErrorBox message={error}/>} {groups.map(([title,type,rows]:any)=><section className="application-section" key={title}><h2>{title}</h2><div className="submission-cards">{rows.map((r:any)=><article key={r.id}><strong>{r.full_name||r.contact_name||r.email}</strong><span>{r.email}</span><p>{r.subject||r.assistance_type||r.item_category||r.organization_name||r.tracking_number||''}</p><small>{new Date(r.created_at).toLocaleDateString()}</small><select value={r.status} onChange={e=>updateStatus(type,r.id,e.target.value)}><option value="new">New</option><option value="under_review">Under review</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="completed">Completed</option></select></article>)}{!rows.length&&<p>No records.</p>}</div></section>)}<section className="application-section"><h2>Donations</h2><div className="submission-cards">{data.donations.map((r:any)=><article key={r.id}><strong>{r.donor_name}</strong><span>{r.donor_email}</span><p>{r.designation}</p><small>{r.payment_status} · {String(r.currency).toUpperCase()} {Number(r.amount).toLocaleString()}</small></article>)}{!data.donations.length&&<p>No donations.</p>}</div></section></div>}
 
@@ -102,27 +102,50 @@ function SettingsAdmin(){const [rows,setRows]=useState<any[]>([]);const [error,s
 
 
 export default function Admin(){
+  const {hasPermission}=useAuth();
   const [active,setActive]=useState('overview');
   const [navOpen,setNavOpen]=useState(false);
   const config=useMemo(()=>modules.find(m=>m.key===active),[active]);
-  const navGroups=[
-    ['Workspace',[['overview','Overview',LayoutDashboard],['phase5','Website Studio',Sparkles]]],
-    ['Foundation',modules.slice(0,4).map(m=>[m.key,m.label,HeartHandshake])],
-    ['Network',[['members','Members',Users],...modules.slice(4).map(m=>[m.key,m.label,m.key==='businesses'?Building2:m.key==='network-events'?CalendarDays:m.key==='products-services'?Package:FileText])]],
-    ['Operations',[['applications','Applications',FileText],['submissions','Submissions',FileText],['payment-methods','Payment Methods',WalletCards],['receipts','Receipts',ReceiptText],['email-queue','Email Queue',Mail]]],
-    ['Governance',[['audit','Audit Log',ScrollText],['settings','Settings',Settings]]]
-  ];
+  const allowed=(permission:string)=>hasPermission(permission);
+  const navGroups:any[]=[
+    ['Workspace',[
+      allowed('view_overview')&&['overview','Overview',LayoutDashboard],
+      (allowed('manage_content')||allowed('manage_memberships')||allowed('manage_matches'))&&['phase5','Operations Studio',Sparkles]
+    ].filter(Boolean)],
+    ['Foundation',allowed('manage_content')?modules.slice(0,4).map(m=>[m.key,m.label,HeartHandshake]):[]],
+    ['Network',[
+      allowed('view_members')&&['members','Members',Users],
+      allowed('view_mentors')&&['mentors-admin','Mentors',UserRoundCheck],
+      allowed('manage_invitations')&&['mentor-invitations','Invitations',Mail],
+      ...((allowed('manage_content')?modules.slice(4).map(m=>[m.key,m.label,m.key==='businesses'?Building2:m.key==='network-events'?CalendarDays:m.key==='products-services'?Package:FileText]):[]))
+    ].filter(Boolean)],
+    ['Operations',[
+      allowed('view_applications')&&['applications','Applications',FileText],
+      allowed('manage_submissions')&&['submissions','Submissions',FileText],
+      allowed('manage_payments')&&['payment-methods','Payment Methods',WalletCards],
+      allowed('manage_donations')&&['receipts','Receipts',ReceiptText],
+      allowed('manage_email_queue')&&['email-queue','Email Queue',Mail]
+    ].filter(Boolean)],
+    ['Team',[
+      allowed('manage_staff')&&['team-permissions','Team & Permissions',ShieldCheck]
+    ].filter(Boolean)],
+    ['Governance',[
+      allowed('view_audit')&&['audit','Audit Log',ScrollText],
+      allowed('manage_settings')&&['settings','Settings',Settings]
+    ].filter(Boolean)]
+  ].filter(([,items])=>items.length);
   const allItems=navGroups.flatMap(([,items]:any)=>items);
   const activeLabel=allItems.find(([key]:any)=>key===active)?.[1]||'Overview';
+  useEffect(()=>{if(!allItems.some(([key]:any)=>key===active)&&allItems[0]?.[0])setActive(allItems[0][0])},[active,allItems.map((i:any)=>i[0]).join('|')]);
   function navigate(key:string){setActive(key);setNavOpen(false);window.scrollTo({top:0,behavior:'smooth'})}
-  const view=active==='overview'?<Overview onNavigate={navigate}/>:active==='phase5'?<AdminPhase5/>:active==='members'?<MembersAdmin/>:active==='applications'?<ApplicationsAdmin/>:active==='submissions'?<SubmissionsAdmin/>:active==='payment-methods'?<AdminPayments/>:active==='receipts'?<ReceiptsAdmin/>:active==='email-queue'?<EmailQueueAdmin/>:active==='audit'?<AuditAdmin/>:active==='settings'?<SettingsAdmin/>:config?<ContentManager config={config}/>:null;
+  const view=active==='overview'?<Overview onNavigate={navigate}/>:active==='phase5'?<AdminPhase5/>:active==='members'?<SecureMembersAdmin/>:active==='mentors-admin'?<MentorsAdmin/>:active==='mentor-invitations'?<InvitationsAdmin/>:active==='team-permissions'?<TeamPermissionsAdmin/>:active==='applications'?<ApplicationsAdmin/>:active==='submissions'?<SubmissionsAdmin/>:active==='payment-methods'?<AdminPayments/>:active==='receipts'?<ReceiptsAdmin/>:active==='email-queue'?<EmailQueueAdmin/>:active==='audit'?<AuditAdmin/>:active==='settings'?<SettingsAdmin/>:config?<ContentManager config={config}/>:<div className="admin-content"><ErrorBox message="You do not have permission to open this admin section."/></div>;
   return <section className="admin-page admin-phase6-page">
     <div className="admin-workspace">
       {navOpen&&<button className="admin-sidebar-overlay" aria-label="Close admin navigation" onClick={()=>setNavOpen(false)}/>}
       <aside className={`admin-sidebar admin-sidebar-v2 ${navOpen?'open':''}`}>
-        <div className="admin-sidebar-brand"><img src="/assets/brand/logo-mark.webp" alt=""/><div><small>Operations console</small><strong>Women Rise Admin</strong><span>Network & Foundation</span></div><button className="admin-sidebar-close" aria-label="Close navigation" onClick={()=>setNavOpen(false)}><X/></button></div>
+        <div className="admin-sidebar-brand"><img src="/assets/brand/logo-mark.webp" alt=""/><div><small>Operations console</small><strong>Women Rise Admin</strong><span>Permission-based workspace</span></div><button className="admin-sidebar-close" aria-label="Close navigation" onClick={()=>setNavOpen(false)}><X/></button></div>
         <div className="admin-sidebar-scroll">{navGroups.map(([group,items]:any)=><div className="admin-nav-group" key={group}><span>{group}</span>{items.map(([key,label,Icon]:any)=><button className={active===key?'active':''} onClick={()=>navigate(key)} key={key}><Icon/><span>{label}</span>{active===key&&<i/>}</button>)}</div>)}</div>
-        <div className="admin-sidebar-footer"><span><ShieldCheck/></span><div><strong>Secure workspace</strong><small>Phase 6 · Professional UI</small></div></div>
+        <div className="admin-sidebar-footer"><span><ShieldCheck/></span><div><strong>Secure workspace</strong><small>Least-privilege access</small></div></div>
       </aside>
       <div className="admin-main admin-main-v2">
         <div className="admin-mobile-toolbar"><button aria-label="Open admin navigation" onClick={()=>setNavOpen(true)}><Menu/></button><div><span>Admin workspace</span><strong>{activeLabel}</strong></div><div className="admin-live-pill"><Activity/>Live</div></div>

@@ -13,7 +13,8 @@
     "build": "npm run build --workspace server && npm run build --workspace client",
     "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client",
     "validate:phase5": "node scripts/validate-phase5.mjs",
-    "validate:phase6": "node scripts/validate-phase6.mjs"
+    "validate:phase6": "node scripts/validate-phase6.mjs",
+    "test:security": "node scripts/test-security-fixes.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

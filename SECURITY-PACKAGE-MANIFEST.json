@@ -1,0 +1,200 @@
+{
+  "package": "Women Rise security, authorization, mentor and team corrections",
+  "created_at_utc": "2026-08-03T11:35:16.333855+00:00",
+  "remote_database_modified": false,
+  "migration_applied": false,
+  "files": [
+    {
+      "path": "supabase/migrations/009_security_roles_mentors.sql",
+      "size": 15449,
+      "sha256": "7c9cadb140e56717cd5419434bdc8e84b1e84c4a7897f8d9b0b1ae109b2863e6"
+    },
+    {
+      "path": "supabase/migrations/009_security_roles_mentors.rollback.sql",
+      "size": 762,
+      "sha256": "3b893af6b86e2c5ee4c5ececefd890162700e428023b966f4da538808dbf6804"
+    },
+    {
+      "path": "supabase/009-SECURITY-VERIFY.sql",
+      "size": 3116,
+      "sha256": "591c1df80d1dfe4f33133167aaa727c8a3f8e000a5c75295b2a60a5b48db1842"
+    },
+    {
+      "path": "supabase/009-DATA-MIGRATION-REPORT.sql",
+      "size": 955,
+      "sha256": "24809a2acbe9db42e4c164981fc30fb5903f68c3614814f21a1d6f66eb4a1ddd"
+    },
+    {
+      "path": "server/src/lib/access.ts",
+      "size": 2390,
+      "sha256": "12e208bba74f40b73de1dffdf5cd5727d3d91b2fa0be0c524c3de47798a661d6"
+    },
+    {
+      "path": "server/src/lib/identityService.ts",
+      "size": 1737,
+      "sha256": "17018cedbd519258a1b5c17a76b7c8ed3c28b855e4f7b305d960bf01c642837e"
+    },
+    {
+      "path": "server/src/middleware/auth.ts",
+      "size": 4580,
+      "sha256": "7e52e7b21f8d4deac276bb1a53ca90e1fd797de2803597f61d275b1b1b8d43ea"
+    },
+    {
+      "path": "server/src/routes/access.ts",
+      "size": 1654,
+      "sha256": "c2ae3c3a8decb5740bbba7047814e2361893fd430dc0d5868e005e829c05dbdc"
+    },
+    {
+      "path": "server/src/routes/adminSecurity.ts",
+      "size": 22415,
+      "sha256": "dfea27ae4d981d7f10075186080322204e7ae8f930cbed1268ca29eb5b9c6658"
+    },
+    {
+      "path": "server/src/routes/admin.ts",
+      "size": 23872,
+      "sha256": "6661977ea846a2bd966eb4b6c9098c08d9826c00315ffa57c51745cb260dd8e0"
+    },
+    {
+      "path": "server/src/routes/adminPayments.ts",
+      "size": 11394,
+      "sha256": "4f81e0323ae3d9cc19542feb25a28a05e48c594b196523a3cab9c45c8918727f"
+    },
+    {
+      "path": "server/src/routes/adminPhase4.ts",
+      "size": 38339,
+      "sha256": "0d549f3ac06c4ef55704a256a2c3ff4410b7ff40b616bd836da301fff954d561"
+    },
+    {
+      "path": "server/src/routes/phase4.ts",
+      "size": 14553,
+      "sha256": "6ff465868d983e3a1f8addcf0ab69baed8fb2df4f6e7de6fe00215dfc255ebea"
+    },
+    {
+      "path": "server/src/routes/public.ts",
+      "size": 10323,
+      "sha256": "c0c1a3955525e2c4c7b5b8082b9fbb3ab3bfb50767a4d4c9f299459d76911dca"
+    },
+    {
+      "path": "server/src/index.ts",
+      "size": 4353,
+      "sha256": "a8fb07595ec3a969a2087e6d43136161f2090b9932a754f3f22f74638e0c50f7"
+    },
+    {
+      "path": "server/src/types/express.d.ts",
+      "size": 372,
+      "sha256": "e0bdbf0b50d908b26502005b51c83ce249258fe33afe618973b64f71eabaf010"
+    },
+    {
+      "path": "client/src/contexts/AuthContext.tsx",
+      "size": 3940,
+      "sha256": "25155c354b904a39f0e95fefdf8d35ddd841163fd9d449ba8d52308d25d1e1bc"
+    },
+    {
+      "path": "client/src/components/ProtectedRoute.tsx",
+      "size": 657,
+      "sha256": "eefeebd23cfe8a86ccdb6f4400f17893b273bf15b323601c959ec766e06e0a2f"
+    },
+    {
+      "path": "client/src/App.tsx",
+      "size": 4791,
+      "sha256": "8837dff2bc93c0cb38e1e9e2920a1d82d2effebf2e85d2639bdda576e4797731"
+    },
+    {
+      "path": "client/src/pages/Admin.tsx",
+      "size": 39110,
+      "sha256": "e6ea85e8804e7b89e5929046645cb4bb9e6e1c7e883e97287e3694c0422ec1ae"
+    },
+    {
+      "path": "client/src/pages/AdminPhase5.tsx",
+      "size": 48484,
+      "sha256": "906c480a1be3734fb042c74807e9bca2e608cf9a2665f40d79ba098aa1b55024"
+    },
+    {
+      "path": "client/src/pages/AdminSecurity.tsx",
+      "size": 11917,
+      "sha256": "1880037a86ae0055acafa7a9d93a8400ed74cb681a7385fb79fe4b397b5b0f75"
+    },
+    {
+      "path": "client/src/pages/Dashboard.tsx",
+      "size": 24642,
+      "sha256": "1ce1ed0117302041a19e4429e436c9464d9c39b4cfacebf36b8f9a6c30ab8863"
+    },
+    {
+      "path": "client/src/pages/MentorDashboard.tsx",
+      "size": 10283,
+      "sha256": "5a163011ea2e6a9301f8bb7db56c7ecff5074784646a5b74ec9b4736b86c351a"
+    },
+    {
+      "path": "client/src/pages/MentorOnboarding.tsx",
+      "size": 4906,
+      "sha256": "2d4117a4daa3a5d5a124fa6e7d268835668671c9366e90f02751ce9aa9e016ef"
+    },
+    {
+      "path": "client/src/pages/StaffOnboarding.tsx",
+      "size": 1534,
+      "sha256": "06989aae374ac55b999e7021f9106105fdf78d5abef3f400587908045f86a5b2"
+    },
+    {
+      "path": "scripts/test-security-fixes.mjs",
+      "size": 5494,
+      "sha256": "e11ac8b9250eee31e192da49df8ea1093cf716099373e4aee72feadd4c82174e"
+    },
+    {
+      "path": "package.json",
+      "size": 834,
+      "sha256": "67e0772a23a0f0fa945ee1474e2828d7343bee6aa09b4de9aef43a7680e4ded8"
+    },
+    {
+      "path": ".gitignore",
+      "size": 211,
+      "sha256": "0e0bbd66211386f33e97eff8a474c8b12c3a1ab0878da67fac9d3d9dd9d4142e"
+    },
+    {
+      "path": "17-open-security-migration.bat",
+      "size": 85,
+      "sha256": "0adf718648fdd84bab3abf327271d5b1fe38c1802d4efeb772ba74d69fcbe7d3"
+    },
+    {
+      "path": "18-open-security-verify.bat",
+      "size": 67,
+      "sha256": "e89e09d71e590557d9ef869cf652ea24fc4a2ab734e42db0744bb46bbc76039c"
+    },
+    {
+      "path": "19-open-security-migration-report.bat",
+      "size": 73,
+      "sha256": "639dfd4bb42fb5e1436e7af6f7c73720c0245cc50dad387fc7153567656a9230"
+    },
+    {
+      "path": "SECURITY-FIXES-README-FIRST.txt",
+      "size": 2195,
+      "sha256": "78a3d261b1be4fc2ecfd84b88493b3a04de5d15f10136a2af627c1c6b507dd0e"
+    },
+    {
+      "path": "SECURITY-FIXES-REPORT.md",
+      "size": 4789,
+      "sha256": "4998b27cc0a2967e98e42c3d9e515522aad1577924cc10ae124f14ff35436803"
+    },
+    {
+      "path": "ROLLBACK-INSTRUCTIONS.md",
+      "size": 856,
+      "sha256": "01c127aa52182be3fc1638f5066cf7351343fa9c0534669917791f548787d5d4"
+    },
+    {
+      "path": "DATA-MIGRATION-NOTES.md",
+      "size": 970,
+      "sha256": "545f135d0fd9c37c21ca36e4a62d9a95b32aac32becfd2868140a23bd8ee7f28"
+    },
+    {
+      "path": "PACKAGE-VALIDATION.txt",
+      "size": 814,
+      "sha256": "42cdd004bd98256cfba8696040b6ce510793ffeee6ea66089c7c24294b6f2a4b"
+    }
+  ],
+  "validation": {
+    "security_regression": "18/18 passed",
+    "phase6_validation": "52/52 passed",
+    "typescript_syntax": "67 files, 0 syntax errors",
+    "full_dependency_build": "not run; dependency installation unavailable in isolated packaging environment",
+    "connected_database_verification": "not run; migration intentionally not applied"
+  }
+}

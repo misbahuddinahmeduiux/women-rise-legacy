@@ -42,7 +42,14 @@ publicRouter.get('/members', requireUser, requireDirectoryMembership, async (_re
   try { const { data, error } = await supabaseAdmin.from('profiles').select('id,full_name,role,country,city,avatar_url,headline,bio,skills,linkedin_url,website_url,membership_level,membership_status,is_directory_visible,is_mentor,mentor_expertise,mentor_availability,business_name,created_at').eq('is_directory_visible', true).in('membership_status', ['active', 'trialing']).or(`membership_expires_at.is.null,membership_expires_at.gt.${new Date().toISOString()}`).order('full_name'); if (error) throw error; res.json(data); } catch (error) { next(error); }
 });
 publicRouter.get('/mentors', requireUser, requireDirectoryMembership, async (_req, res, next) => {
-  try { const { data, error } = await supabaseAdmin.from('profiles').select('id,full_name,role,country,city,avatar_url,headline,bio,skills,linkedin_url,website_url,membership_level,membership_status,is_directory_visible,is_mentor,mentor_expertise,mentor_availability,business_name,created_at').eq('is_mentor', true).eq('is_directory_visible', true).order('full_name'); if (error) throw error; res.json(data); } catch (error) { next(error); }
+  try {
+    const { data, error } = await supabaseAdmin.from('mentor_profiles').select('user_id,professional_title,biography,expertise,mentor_skills,industry,years_experience,languages,availability,timezone,maximum_mentees,session_format,profile_status,directory_visible,is_active,approved_at,profile:profiles!mentor_profiles_user_id_fkey(id,full_name,country,city,avatar_url,headline,linkedin_url,website_url,business_name,account_status)').eq('profile_status','approved').eq('is_active',true).eq('directory_visible',true).order('approved_at',{ascending:false});
+    if (error) throw error;
+    const mentors=(data??[]).filter((row:any)=>row.profile?.account_status==='active').map((row:any)=>({
+      id:row.user_id,full_name:row.profile?.full_name,country:row.profile?.country,city:row.profile?.city,avatar_url:row.profile?.avatar_url,headline:row.professional_title||row.profile?.headline,bio:row.biography,skills:row.mentor_skills,linkedin_url:row.profile?.linkedin_url,website_url:row.profile?.website_url,business_name:row.profile?.business_name,mentor_expertise:row.expertise,mentor_availability:row.availability,mentor_years_experience:row.years_experience,mentor_session_type:row.session_format,languages:row.languages,timezone:row.timezone,maximum_mentees:row.maximum_mentees
+    }));
+    res.json(mentors);
+  } catch (error) { next(error); }
 });
 publicRouter.get('/businesses', async (req, res, next) => {
   try { let q=supabaseAdmin.from('businesses').select('*').eq('is_published',true).order('is_featured',{ascending:false}).order('name'); if(req.query.featured==='true')q=q.eq('is_featured',true); const {data,error}=await q; if(error)throw error; res.json(data); } catch(error){next(error)}

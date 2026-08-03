@@ -22,3 +22,6 @@ server/create-test-user.mjs
 
 # Local archives
 *.tgz
+# Local database backups - never commit
+/backups/
+

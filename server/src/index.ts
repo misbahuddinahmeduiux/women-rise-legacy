@@ -14,6 +14,8 @@ import { networkRouter } from './routes/network.js';
 import { membershipsRouter } from './routes/memberships.js';
 import { phase4Router } from './routes/phase4.js';
 import { adminPhase4Router } from './routes/adminPhase4.js';
+import { adminSecurityRouter } from './routes/adminSecurity.js';
+import { accessRouter } from './routes/access.js';
 import { publicError } from './lib/helpers.js';
 import { createRateLimiter } from './middleware/rateLimit.js';
 import { requestId } from './middleware/requestId.js';
@@ -62,6 +64,7 @@ app.get('/api/ready', async (_req, res) => {
   if (error) return res.status(503).json({ status: 'not_ready', database: error.message });
   return res.json({ status: 'ready', database: 'connected', version: '6.0.0' });
 });
+app.use('/api/access', accessRouter);
 app.use('/api/public', publicRouter);
 app.use('/api/phase4', phase4Router);
 app.use('/api/memberships', createRateLimiter({ windowMs: 15 * 60 * 1000, max: 30 }), membershipsRouter);
@@ -69,6 +72,7 @@ app.use('/api/forms', createRateLimiter({ windowMs: 15 * 60 * 1000, max: 40 }), 
 app.use('/api/payments', createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20 }), paymentsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/network', createRateLimiter({ windowMs: 15 * 60 * 1000, max: 40 }), networkRouter);
+app.use('/api/admin/security', adminSecurityRouter);
 app.use('/api/admin/payment-methods', adminPaymentsRouter);
 app.use('/api/admin/phase4', adminPhase4Router);
 app.use('/api/admin', adminRouter);
