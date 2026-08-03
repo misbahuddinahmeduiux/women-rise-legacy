@@ -2,7 +2,7 @@ import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
 import {
   ArrowRight, Bell, BookOpenCheck, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, CircleDollarSign, Crown, Download, HandHeart, LayoutDashboard,
-  LockKeyhole, Pencil, ReceiptText, Save, Sparkles, Target, UserRoundCheck,
+  LockKeyhole, Pencil, ReceiptText, Save, ShieldCheck, Sparkles, Target, UserRoundCheck,
   Users, WalletCards, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -91,7 +91,14 @@ export default function Dashboard() {
   const profileFields = [p.full_name, p.avatar_url, p.headline, p.bio, p.city, p.country, p.skills?.length, p.linkedin_url || p.website_url];
   const profileScore = Math.round((profileFields.filter(Boolean).length / profileFields.length) * 100);
   const displayName = p.full_name || user?.email?.split('@')[0] || 'Member';
-  const currentPlan = p.plan?.name || (p.membership_level ? displayStatus(p.membership_level) : 'No active plan');
+  const currentPlan = p.plan?.name || (p.membership_level ? displayStatus(p.membership_level) : 'No personal plan');
+  const staffRoleLabel = access?.roleKey ? displayStatus(access.roleKey) : null;
+  const mentorLabel = access?.mentorStatus ? `${displayStatus(access.mentorStatus)}${access.mentorActive ? ' · Active' : ''}` : 'Not a mentor';
+  const heroMessage = isActiveMember
+    ? `Your personal ${currentPlan} membership is active. Staff and mentor access remain separate.`
+    : access?.isStaff
+      ? `Your ${staffRoleLabel} staff access is active. Personal membership and mentor status are managed separately.`
+      : 'Complete your profile and choose a personal membership to unlock your network experience.';
 
   const onboarding: OnboardingItem[] = [
     { label: 'Email verified', complete: Boolean(user?.email_confirmed_at), to: '/dashboard', note: 'Your secure account is ready.' },
@@ -115,20 +122,28 @@ export default function Dashboard() {
         <div className="member-command-copy">
           <span className="member-kicker"><LayoutDashboard />Personal command centre</span>
           <h1>Welcome back, {displayName}.</h1>
-          <p>{isActiveMember ? `Your ${currentPlan} membership is active. Continue building connections, knowledge and impact.` : 'Complete your profile and choose a membership to unlock your network experience.'}</p>
+          <p>{heroMessage}</p>
           <div className="member-command-actions">
             {!isActiveMember && <Link className="member-primary-action" to="/membership"><Crown />Choose membership<ArrowRight /></Link>}
             <button className="member-secondary-action" onClick={() => setEditing(true)}><Pencil />Update profile</button>
             {access?.mentorStatus && <Link className="member-secondary-action" to={access.mentorStatus === 'approved' && access.mentorActive ? '/mentor-dashboard' : '/mentor-onboarding'}><UserRoundCheck />{access.mentorStatus === 'approved' && access.mentorActive ? 'Mentor workspace' : 'Complete mentor profile'}</Link>}
+            {access?.isStaff && <Link className="member-secondary-action" to="/admin"><ShieldCheck />Admin workspace</Link>}
           </div>
         </div>
         <div className="member-plan-card">
+          <small className="member-plan-label">Personal membership</small>
           <span className={`membership-chip ${p.membership_level || 'all'}`}><Crown />{currentPlan}</span>
           <strong>{displayStatus(p.membership_status)}</strong>
           <small>{p.membership_expires_at ? `Access through ${new Date(p.membership_expires_at).toLocaleDateString()}` : isActiveMember ? 'Ongoing membership access' : 'Choose a plan to activate access'}</small>
           <div className="member-profile-meter"><span><b>{profileScore}%</b> profile complete</span><i><b style={{ width: `${profileScore}%` }} /></i></div>
         </div>
       </header>
+
+      <section className="member-access-separation" aria-label="Account access summary">
+        <article><ShieldCheck /><div><small>Staff authority</small><strong>{access?.isStaff ? staffRoleLabel : 'No staff access'}</strong><span>Controls internal admin modules only</span></div></article>
+        <article><UserRoundCheck /><div><small>Mentor profile</small><strong>{mentorLabel}</strong><span>Separate onboarding and approval</span></div></article>
+        <article><Crown /><div><small>Personal membership</small><strong>{currentPlan}</strong><span>{displayStatus(p.membership_status)} · never granted by staff role</span></div></article>
+      </section>
 
       {saved && <SuccessBox message={saved} />}{error && <ErrorBox message={error} />}
 
@@ -141,7 +156,7 @@ export default function Dashboard() {
       </section>
 
       <div className="member-stat-grid">
-        <article><span><Crown /></span><div><small>Membership</small><strong>{currentPlan}</strong><b>{displayStatus(p.membership_status)}</b></div></article>
+        <article><span><Crown /></span><div><small>Personal membership</small><strong>{currentPlan}</strong><b>{displayStatus(p.membership_status)}</b></div></article>
         <article><span><HandHeart /></span><div><small>Giving</small><strong>{data.donations.length}</strong><b>Donation records</b></div></article>
         <article><span><ReceiptText /></span><div><small>Receipts</small><strong>{receiptCount}</strong><b>Available records</b></div></article>
         <article><span><CalendarDays /></span><div><small>Events</small><strong>{data.eventRegistrations.length}</strong><b>Registrations</b></div></article>

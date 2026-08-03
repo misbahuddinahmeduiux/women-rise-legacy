@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Activity, ArrowUpRight, BarChart3, Building2, CalendarDays, CheckCircle2, CircleDollarSign, FileText, HeartHandshake, LayoutDashboard, Mail, Menu, Package, Plus, ReceiptText, RotateCcw, Save, ScrollText, Settings, ShieldCheck, Sparkles, Trash2, UserRoundCheck, Users, WalletCards, X } from 'lucide-react';
 import { ErrorBox, Loader, SuccessBox } from '../components/UI';
 import { StructuredEditor, type StructuredValue } from '../components/StructuredEditor';
@@ -105,7 +105,6 @@ export default function Admin(){
   const {hasPermission}=useAuth();
   const [active,setActive]=useState('overview');
   const [navOpen,setNavOpen]=useState(false);
-  const config=useMemo(()=>modules.find(m=>m.key===active),[active]);
   const allowed=(permission:string)=>hasPermission(permission);
   const navGroups:any[]=[
     ['Workspace',[
@@ -135,16 +134,18 @@ export default function Admin(){
     ].filter(Boolean)]
   ].filter(([,items])=>items.length);
   const allItems=navGroups.flatMap(([,items]:any)=>items);
-  const activeLabel=allItems.find(([key]:any)=>key===active)?.[1]||'Overview';
+  const resolvedActive=allItems.some(([key]:any)=>key===active)?active:(allItems[0]?.[0]||'');
+  const config=modules.find(m=>m.key===resolvedActive);
+  const activeLabel=allItems.find(([key]:any)=>key===resolvedActive)?.[1]||'Admin workspace';
   useEffect(()=>{if(!allItems.some(([key]:any)=>key===active)&&allItems[0]?.[0])setActive(allItems[0][0])},[active,allItems.map((i:any)=>i[0]).join('|')]);
   function navigate(key:string){setActive(key);setNavOpen(false);window.scrollTo({top:0,behavior:'smooth'})}
-  const view=active==='overview'?<Overview onNavigate={navigate}/>:active==='phase5'?<AdminPhase5/>:active==='members'?<SecureMembersAdmin/>:active==='mentors-admin'?<MentorsAdmin/>:active==='mentor-invitations'?<InvitationsAdmin/>:active==='team-permissions'?<TeamPermissionsAdmin/>:active==='applications'?<ApplicationsAdmin/>:active==='submissions'?<SubmissionsAdmin/>:active==='payment-methods'?<AdminPayments/>:active==='receipts'?<ReceiptsAdmin/>:active==='email-queue'?<EmailQueueAdmin/>:active==='audit'?<AuditAdmin/>:active==='settings'?<SettingsAdmin/>:config?<ContentManager config={config}/>:<div className="admin-content"><ErrorBox message="You do not have permission to open this admin section."/></div>;
+  const view=resolvedActive==='overview'?<Overview onNavigate={navigate}/>:resolvedActive==='phase5'?<AdminPhase5/>:resolvedActive==='members'?<SecureMembersAdmin/>:resolvedActive==='mentors-admin'?<MentorsAdmin/>:resolvedActive==='mentor-invitations'?<InvitationsAdmin/>:resolvedActive==='team-permissions'?<TeamPermissionsAdmin/>:resolvedActive==='applications'?<ApplicationsAdmin/>:resolvedActive==='submissions'?<SubmissionsAdmin/>:resolvedActive==='payment-methods'?<AdminPayments/>:resolvedActive==='receipts'?<ReceiptsAdmin/>:resolvedActive==='email-queue'?<EmailQueueAdmin/>:resolvedActive==='audit'?<AuditAdmin/>:resolvedActive==='settings'?<SettingsAdmin/>:config?<ContentManager config={config}/>:<div className="admin-content"><ErrorBox message="You do not have permission to open this admin section."/></div>;
   return <section className="admin-page admin-phase6-page">
     <div className="admin-workspace">
       {navOpen&&<button className="admin-sidebar-overlay" aria-label="Close admin navigation" onClick={()=>setNavOpen(false)}/>}
       <aside className={`admin-sidebar admin-sidebar-v2 ${navOpen?'open':''}`}>
         <div className="admin-sidebar-brand"><img src="/assets/brand/logo-mark.webp" alt=""/><div><small>Operations console</small><strong>Women Rise Admin</strong><span>Permission-based workspace</span></div><button className="admin-sidebar-close" aria-label="Close navigation" onClick={()=>setNavOpen(false)}><X/></button></div>
-        <div className="admin-sidebar-scroll">{navGroups.map(([group,items]:any)=><div className="admin-nav-group" key={group}><span>{group}</span>{items.map(([key,label,Icon]:any)=><button className={active===key?'active':''} onClick={()=>navigate(key)} key={key}><Icon/><span>{label}</span>{active===key&&<i/>}</button>)}</div>)}</div>
+        <div className="admin-sidebar-scroll">{navGroups.map(([group,items]:any)=><div className="admin-nav-group" key={group}><span>{group}</span>{items.map(([key,label,Icon]:any)=><button className={resolvedActive===key?'active':''} onClick={()=>navigate(key)} key={key}><Icon/><span>{label}</span>{resolvedActive===key&&<i/>}</button>)}</div>)}</div>
         <div className="admin-sidebar-footer"><span><ShieldCheck/></span><div><strong>Secure workspace</strong><small>Least-privilege access</small></div></div>
       </aside>
       <div className="admin-main admin-main-v2">

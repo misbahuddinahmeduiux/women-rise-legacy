@@ -7,6 +7,7 @@ export interface AccessState {
   isSuperAdmin: boolean;
   staffStatus: 'invited'|'active'|'suspended'|'deactivated'|null;
   roleKey: string|null;
+  permissionMode: 'additive'|'replace'|null;
   permissions: string[];
   mentorStatus: string|null;
   mentorActive: boolean;

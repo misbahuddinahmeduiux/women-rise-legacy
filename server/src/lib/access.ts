@@ -7,12 +7,14 @@ export const PERMISSIONS = [
 ] as const;
 
 export type Permission = typeof PERMISSIONS[number];
+export type PermissionMode = 'additive' | 'replace';
 
 export interface AccessContext {
   isStaff: boolean;
   isSuperAdmin: boolean;
   staffStatus: 'invited'|'active'|'suspended'|'deactivated'|null;
   roleKey: string | null;
+  permissionMode: PermissionMode | null;
   permissions: string[];
   mentorStatus: string | null;
   mentorActive: boolean;
@@ -22,7 +24,7 @@ export async function loadAccessContext(userId: string): Promise<AccessContext> 
   const [{ data: staff, error: staffError }, { data: mentor, error: mentorError }] = await Promise.all([
     supabaseAdmin
       .from('staff_memberships')
-      .select('status,role_key,custom_permissions,role:staff_roles!staff_memberships_role_key_fkey(permissions,is_super_admin)')
+      .select('status,role_key,permission_mode,custom_permissions,role:staff_roles!staff_memberships_role_key_fkey(permissions,is_super_admin)')
       .eq('user_id', userId)
       .maybeSingle(),
     supabaseAdmin
@@ -37,15 +39,24 @@ export async function loadAccessContext(userId: string): Promise<AccessContext> 
 
   const role = staff?.role as unknown as { permissions?: string[]; is_super_admin?: boolean } | null;
   const active = staff?.status === 'active';
-  const permissions = active
-    ? Array.from(new Set([...(role?.permissions ?? []), ...((staff?.custom_permissions as string[] | null) ?? [])]))
-    : [];
+  const permissionMode = (staff?.permission_mode as PermissionMode | null) ?? 'additive';
+  const rolePermissions = role?.permissions ?? [];
+  const customPermissions = (staff?.custom_permissions as string[] | null) ?? [];
+  const isSuperAdmin = active && Boolean(role?.is_super_admin);
+  const permissions = !active
+    ? []
+    : isSuperAdmin
+      ? ['*']
+      : permissionMode === 'replace'
+        ? Array.from(new Set(customPermissions))
+        : Array.from(new Set([...rolePermissions, ...customPermissions]));
 
   return {
     isStaff: Boolean(staff),
-    isSuperAdmin: active && Boolean(role?.is_super_admin),
+    isSuperAdmin,
     staffStatus: (staff?.status as AccessContext['staffStatus']) ?? null,
     roleKey: staff?.role_key ?? null,
+    permissionMode: staff ? permissionMode : null,
     permissions,
     mentorStatus: mentor?.profile_status ?? null,
     mentorActive: Boolean(mentor?.is_active)
