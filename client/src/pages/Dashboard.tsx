@@ -1,4 +1,4 @@
-import { type CSSProperties, type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
 import {
   ArrowRight, Bell, BookOpenCheck, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, CircleDollarSign, Crown, Download, HandHeart, LayoutDashboard,
@@ -93,13 +93,13 @@ export default function Dashboard() {
   const displayName = p.full_name || user?.email?.split('@')[0] || 'Member';
   const currentPlan = p.plan?.name || (p.membership_level ? displayStatus(p.membership_level) : 'No active plan');
 
-  const onboarding: OnboardingItem[] = useMemo(() => [
+  const onboarding: OnboardingItem[] = [
     { label: 'Email verified', complete: Boolean(user?.email_confirmed_at), to: '/dashboard', note: 'Your secure account is ready.' },
     { label: 'Complete your profile', complete: profileScore >= 75, to: '/dashboard#profile', note: `${profileScore}% profile completion` },
     { label: 'Choose membership', complete: isActiveMember, to: '/membership', note: isActiveMember ? `${currentPlan} is active` : 'Unlock network access' },
     { label: 'Directory visibility', complete: Boolean(p.is_directory_visible), to: '/dashboard#profile', note: p.is_directory_visible ? 'Your profile can be discovered' : 'Enable when your profile is ready' },
     { label: 'Explore the network', complete: data.eventRegistrations.length > 0 || data.resources.length > 0, to: '/resources', note: 'Resources, events and connections' }
-  ], [user?.email_confirmed_at, profileScore, isActiveMember, currentPlan, p.is_directory_visible, data.eventRegistrations.length, data.resources.length]);
+  ];
   const onboardingDone = onboarding.filter((item) => item.complete).length;
 
   const planActions = p.membership_level === 'elite'
