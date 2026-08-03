@@ -1,5 +1,5 @@
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
-import { BadgeDollarSign, BookOpenText, CalendarClock, CheckCircle2, Crown, FileAudio, ImagePlus, Mail, Pencil, Plus, RefreshCw, Save, Settings2, Trash2, UserPlus, Users, WalletCards, X } from 'lucide-react';
+import { Activity, ArrowUpRight, BadgeDollarSign, BookOpenText, CalendarClock, CheckCircle2, Crown, Database, FileAudio, ImagePlus, Mail, Pencil, Plus, RefreshCw, Save, Settings2, ShieldCheck, Sparkles, Trash2, UserPlus, Users, WalletCards, X, Zap } from 'lucide-react';
 import { ErrorBox, Loader, SuccessBox } from '../components/UI';
 import { StructuredEditor, type StructuredValue } from '../components/StructuredEditor';
 import { api } from '../lib/api';
@@ -7,24 +7,190 @@ import { useAuth } from '../contexts/AuthContext';
 import type { MediaAsset, MembershipPayment, MembershipPlan, MembershipSubscription, PodcastCategory, PodcastEpisode, PodcastGuest, WebsiteContentRow } from '../types';
 
 type Phase5Tab='overview'|'plans'|'billing'|'mentorship'|'podcast'|'website'|'options'|'media'|'email';
-const tabs:[Phase5Tab,string,any,string][]=[
-  ['overview','Studio Overview',Settings2,'view_overview'],['plans','Membership Plans',Crown,'manage_memberships'],['billing','Membership Billing',WalletCards,'manage_memberships'],['mentorship','Matches & Sessions',CalendarClock,'manage_matches'],['podcast','Podcast',FileAudio,'manage_content'],['website','Website CMS',BookOpenText,'manage_content'],['options','Form Options',Settings2,'manage_content'],['media','Media Library',ImagePlus,'manage_content'],['email','Email Templates',Mail,'manage_content']
+type Phase5TabDefinition=[Phase5Tab,string,any,string,string];
+
+const tabs:Phase5TabDefinition[]=[
+  ['overview','Studio Overview',Activity,'view_overview','Live operational totals and platform health'],
+  ['plans','Membership Plans',Crown,'manage_memberships','Pricing, benefits and access levels'],
+  ['billing','Membership Billing',WalletCards,'manage_memberships','Payments, subscriptions and receipts'],
+  ['mentorship','Matches & Sessions',CalendarClock,'manage_matches','Mentor matching and session delivery'],
+  ['podcast','Podcast',FileAudio,'manage_content','Episodes, guests and publishing'],
+  ['website','Website CMS',BookOpenText,'manage_content','Public website content and sections'],
+  ['options','Form Options',Settings2,'manage_content','Dropdowns and reusable form data'],
+  ['media','Media Library',ImagePlus,'manage_content','Images, documents and uploaded assets'],
+  ['email','Email Templates',Mail,'manage_content','Transactional communication templates']
 ];
 
 export default function AdminPhase5(){
   const {hasPermission}=useAuth();
   const visibleTabs=tabs.filter(([, , ,permission])=>hasPermission(permission));
   const [active,setActive]=useState<Phase5Tab>((visibleTabs[0]?.[0]||'overview') as Phase5Tab);
-  useEffect(()=>{if(!visibleTabs.some(([key])=>key===active)&&visibleTabs[0])setActive(visibleTabs[0][0])},[active,visibleTabs.map(([key])=>key).join('|')]);
-  return <div className="phase4-admin"><div className="phase4-admin-banner"><div><span className="eyebrow">Secure operations</span><h1>Website, Content & Operations Studio</h1><p>Only sections allowed by your effective staff permissions are displayed.</p></div><span className="phase-badge">Permission Based</span></div><div className="phase4-tabs">{visibleTabs.map(([key,label,Icon])=><button key={key} className={active===key?'active':''} onClick={()=>setActive(key)}><Icon/>{label}</button>)}</div>{active==='overview'?<Phase5Overview/>:active==='plans'?<PlansAdmin/>:active==='billing'?<BillingAdmin/>:active==='mentorship'?<MentorshipAdmin/>:active==='podcast'?<PodcastAdmin/>:active==='website'?<WebsiteAdmin/>:active==='options'?<ContentOptionsAdmin/>:active==='media'?<MediaAdmin/>:<EmailTemplatesAdmin/>}</div>;
+
+  useEffect(()=>{
+    if(!visibleTabs.some(([key])=>key===active)&&visibleTabs[0])setActive(visibleTabs[0][0]);
+  },[active,visibleTabs.map(([key])=>key).join('|')]);
+
+  return (
+    <div className="phase4-admin operations-studio">
+      <section className="phase4-admin-banner operations-studio-hero">
+        <div className="operations-hero-copy">
+          <div className="operations-hero-kicker"><Sparkles/> Secure operations workspace</div>
+          <h1>Website, Content &amp; Operations Studio</h1>
+          <p>Manage the platform from one permission-aware workspace. Every module shown here is controlled by your effective staff access.</p>
+          <div className="operations-hero-meta">
+            <span><ShieldCheck/> Permission protected</span>
+            <span><Database/> Live Supabase data</span>
+            <span><Activity/> Production workspace</span>
+          </div>
+        </div>
+        <div className="operations-hero-status">
+          <span className="operations-live-dot"/>
+          <small>Workspace status</small>
+          <strong>Operational</strong>
+          <span>{visibleTabs.length} modules available</span>
+        </div>
+      </section>
+
+      <nav className="phase4-tabs operations-module-nav" aria-label="Operations Studio modules">
+        {visibleTabs.map(([key,label,Icon,,description])=>(
+          <button
+            type="button"
+            key={key}
+            className={active===key?'active':''}
+            onClick={()=>setActive(key)}
+            aria-pressed={active===key}
+          >
+            <span className="operations-tab-icon"><Icon/></span>
+            <span className="operations-tab-copy">
+              <strong>{label}</strong>
+              <small>{description}</small>
+            </span>
+            <ArrowUpRight className="operations-tab-arrow"/>
+          </button>
+        ))}
+      </nav>
+
+      <div className="operations-module-surface">
+        {active==='overview'?<Phase5Overview/>:active==='plans'?<PlansAdmin/>:active==='billing'?<BillingAdmin/>:active==='mentorship'?<MentorshipAdmin/>:active==='podcast'?<PodcastAdmin/>:active==='website'?<WebsiteAdmin/>:active==='options'?<ContentOptionsAdmin/>:active==='media'?<MediaAdmin/>:<EmailTemplatesAdmin/>}
+      </div>
+    </div>
+  );
 }
 
 function Phase5Overview(){
-  const [data,setData]=useState<Record<string,number>|null>(null);const [error,setError]=useState('');
-  useEffect(()=>{api<Record<string,number>>('/admin/phase4/overview').then(setData).catch(e=>setError(e.message))},[]);
-  if(error)return <ErrorBox message={error}/>;if(!data)return <Loader/>;
-  const cards=[['membership_plans','Plans',Crown],['membership_payments','Payments',BadgeDollarSign],['membership_subscriptions','Subscriptions',WalletCards],['mentorship_matches','Mentor matches',Users],['mentor_sessions','Sessions',CalendarClock],['podcast_episodes','Podcast episodes',FileAudio],['website_content','CMS records',BookOpenText],['media_assets','Media files',ImagePlus]] as const;
-  return <div className="phase4-content"><div className="admin-page-heading"><div><span className="eyebrow">System status</span><h2>Phase 6 operational overview</h2><p>Counts update from Supabase in real time. Admin content now uses normal form controls instead of raw JSON.</p></div></div><div className="overview-grid">{cards.map(([key,label,Icon])=><div className="overview-card" key={key}><span><Icon/></span><strong>{data[key]||0}</strong><small>{label}</small></div>)}</div><div className="phase4-note"><CheckCircle2/><div><b>Automatic membership activation</b><p>Verified Stripe, PayPal, demo, complimentary, or approved bank-transfer payments activate the selected membership plan and access level.</p></div></div></div>;
+  const [data,setData]=useState<Record<string,number>|null>(null);
+  const [error,setError]=useState('');
+  const [refreshing,setRefreshing]=useState(false);
+  const [lastUpdated,setLastUpdated]=useState<Date|null>(null);
+
+  async function load(){
+    setRefreshing(true);
+    setError('');
+    try{
+      const result=await api<Record<string,number>>('/admin/phase4/overview');
+      setData(result);
+      setLastUpdated(new Date());
+    }catch(e){
+      setError(e instanceof Error?e.message:'Operational totals could not be loaded.');
+    }finally{
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(()=>{void load()},[]);
+
+  if(error&&!data)return <ErrorBox message={error}/>;
+  if(!data)return <Loader/>;
+
+  const cards=[
+    ['membership_plans','Membership plans','Configured pricing and access tiers',Crown,'gold'],
+    ['membership_payments','Payments','Recorded membership transactions',BadgeDollarSign,'green'],
+    ['membership_subscriptions','Subscriptions','Active and historical memberships',WalletCards,'purple'],
+    ['mentorship_matches','Mentor matches','Member and mentor connections',Users,'rose'],
+    ['mentor_sessions','Sessions','Scheduled mentorship sessions',CalendarClock,'blue'],
+    ['podcast_episodes','Podcast episodes','Published and drafted episodes',FileAudio,'orange'],
+    ['website_content','CMS records','Managed website content entries',BookOpenText,'teal'],
+    ['media_assets','Media files','Images, documents and uploaded assets',ImagePlus,'violet']
+  ] as const;
+
+  const coverage=[
+    ['Membership commerce','Plans, billing and subscriptions',Crown],
+    ['Mentorship delivery','Matches and session operations',CalendarClock],
+    ['Publishing systems','Podcast, CMS and media',BookOpenText],
+    ['Communication','Reusable email templates',Mail]
+  ] as const;
+
+  return (
+    <div className="phase4-content operations-overview">
+      <header className="operations-overview-heading">
+        <div>
+          <span className="eyebrow">Live system status</span>
+          <h2>Operational overview</h2>
+          <p>Real-time platform totals, workflow coverage and safeguards for the production workspace.</p>
+        </div>
+        <button type="button" className="button ghost operations-refresh" onClick={()=>void load()} disabled={refreshing}>
+          <RefreshCw className={refreshing?'is-spinning':''}/>
+          {refreshing?'Refreshing':'Refresh data'}
+        </button>
+      </header>
+
+      {error&&<ErrorBox message={error}/>}
+
+      <section className="operations-kpi-grid" aria-label="Platform totals">
+        {cards.map(([key,label,description,Icon,accent])=>(
+          <article className={`operations-kpi-card accent-${accent}`} key={key}>
+            <div className="operations-kpi-top">
+              <span className="operations-kpi-icon"><Icon/></span>
+              <span className="operations-kpi-live"><span/> Live</span>
+            </div>
+            <strong>{Number(data[key]||0).toLocaleString()}</strong>
+            <h3>{label}</h3>
+            <p>{description}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="operations-detail-grid">
+        <article className="operations-detail-card">
+          <div className="operations-card-heading">
+            <span><Zap/></span>
+            <div>
+              <small>Automation</small>
+              <h3>Membership activation</h3>
+            </div>
+          </div>
+          <p>Verified Stripe, PayPal, demo, complimentary and approved bank-transfer payments activate the selected plan and access level automatically.</p>
+          <div className="operations-check-row"><CheckCircle2/><span>Payment verification is connected to access activation</span></div>
+          <div className="operations-check-row"><ShieldCheck/><span>Permission checks remain enforced on protected admin actions</span></div>
+        </article>
+
+        <article className="operations-detail-card">
+          <div className="operations-card-heading">
+            <span><Activity/></span>
+            <div>
+              <small>Workspace coverage</small>
+              <h3>Connected operational areas</h3>
+            </div>
+          </div>
+          <div className="operations-coverage-list">
+            {coverage.map(([title,description,Icon])=>(
+              <div key={title}>
+                <span><Icon/></span>
+                <p><strong>{title}</strong><small>{description}</small></p>
+                <CheckCircle2/>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <footer className="operations-data-footer">
+        <span><Database/> Source: production Supabase</span>
+        <span><ShieldCheck/> Access: permission based</span>
+        <span><RefreshCw/> Last updated: {lastUpdated?lastUpdated.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'Just now'}</span>
+      </footer>
+    </div>
+  );
 }
 
 const blankPlan={name:'',slug:'',accessLevel:'rise',tagline:'',description:'',features:'',currency:'usd',monthlyEnabled:true,monthlyPrice:'',yearlyEnabled:true,yearlyPrice:'',oneTimeEnabled:false,oneTimePrice:'',oneTimeDurationMonths:'12',oneTimeLifetime:false,autoRenew:true,trialDays:'0',gracePeriodDays:'7',mentorshipAccess:'browse',directoryAccess:true,businessListing:false,featuredVisibility:false,badgeText:'',isFeatured:false,displayOrder:'0',isActive:true};
