@@ -7,6 +7,7 @@ import { writeAudit } from '../lib/audit.js';
 import { queueEmail } from '../lib/email.js';
 import { updateMembership } from '../lib/identityService.js';
 import { supabaseAdmin } from '../lib/supabase.js';
+import { rotateUserAuthVersion } from '../lib/sessionSecurity.js';
 import { requirePermission, requireStaff, requireUser } from '../middleware/auth.js';
 
 export const adminSecurityRouter = Router();
@@ -72,6 +73,23 @@ async function ensureLastSuperAdminIsPreserved(userId: string, nextRoleKey?: str
   const { count, error } = await supabaseAdmin.from('staff_memberships').select('*', { count:'exact', head:true }).eq('role_key','super_admin').eq('status','active');
   if (error) throw error;
   if ((count ?? 0) <= 1) throw new Error('At least one active super admin must remain.');
+}
+
+const STAFF_STATUS_TRANSITIONS:Record<string,readonly string[]>={
+  invited:['invited','deactivated'],
+  active:['active','suspended','deactivated'],
+  suspended:['suspended','active','deactivated'],
+  deactivated:['deactivated','active']
+};
+
+function assertStaffStatusTransition(currentStatus:string,nextStatus:string){
+  const allowed=STAFF_STATUS_TRANSITIONS[currentStatus]??[];
+  if(!allowed.includes(nextStatus)){
+    throw new Error(`Staff status cannot change from ${currentStatus} to ${nextStatus}.`);
+  }
+  if(currentStatus!=='invited'&&nextStatus==='invited'){
+    throw new Error('An existing employee cannot be moved back into the invitation state.');
+  }
 }
 
 adminSecurityRouter.get('/roles', requirePermission('manage_staff'), async (req, res, next) => {
@@ -144,6 +162,12 @@ adminSecurityRouter.patch('/members/:id/account-status', requirePermission('mana
     if(targetStaff.data?.role_key==='super_admin' && input.status!=='active') return res.status(409).json({error:'The permanent Super Admin account cannot be suspended or deactivated.'});
     const {data,error}=await supabaseAdmin.from('profiles').update({account_status:input.status}).eq('id',memberId).select().single();
     if(error)throw error;
+    try{
+      await rotateUserAuthVersion(memberId,{accountStatus:input.status});
+    }catch(sessionError){
+      await supabaseAdmin.from('profiles').update({account_status:before.data.account_status}).eq('id',memberId);
+      throw sessionError;
+    }
     await writeAudit(req,{action:'account_status_change',entityType:'profiles',entityId:memberId,summary:input.reason,beforeData:before.data,afterData:data});
     res.json(data);
   }catch(error){next(error)}
@@ -331,6 +355,13 @@ adminSecurityRouter.post('/team/invite', requirePermission('manage_staff'), requ
     if(existing.data&&existing.data.status!=='deactivated')return res.status(409).json({error:'This account already has staff access.'});
     const now=new Date().toISOString();
     const {data,error}=await supabaseAdmin.from('staff_memberships').upsert({user_id:profile.id,role_key:role.key,permission_mode:input.permissionMode,custom_permissions:input.customPermissions,status:newAuthUser?'invited':'active',job_title:input.jobTitle||null,department:input.department||null,invited_by:req.profile!.id,invited_at:now,accepted_at:newAuthUser?null:now,activated_at:newAuthUser?null:now,suspended_at:null,deactivated_at:null,status_reason:null},{onConflict:'user_id'}).select().single();if(error)throw error;
+    try{
+      await rotateUserAuthVersion(profile.id);
+    }catch(sessionError){
+      if(existing.data)await supabaseAdmin.from('staff_memberships').upsert(existing.data,{onConflict:'user_id'});
+      else await supabaseAdmin.from('staff_memberships').delete().eq('user_id',profile.id);
+      throw sessionError;
+    }
     if(!newAuthUser)await queueEmail({to:email,name:profile.full_name||input.fullName,templateKey:'staff_invitation',subject:'Women Rise Legacy team access',payload:{role:role.name,loginUrl:`${env.APP_URL}/login`}});
     await writeAudit(req,{action:'staff_added',entityType:'staff_memberships',entityId:profile.id,summary:`Added ${email} as ${role.name} with ${input.permissionMode==='replace'?'exact custom':'role-based'} access.`,afterData:{...data,effective_permissions:effectivePermissions(role,input.customPermissions,input.permissionMode)}});
     res.status(201).json(data);
@@ -344,11 +375,21 @@ adminSecurityRouter.put('/team/:id', requirePermission('manage_staff'), requireP
     const before=await supabaseAdmin.from('staff_memberships').select('*').eq('user_id',staffUserId).single();if(before.error)throw before.error;
     if(before.data.role_key==='super_admin')return res.status(409).json({error:'The permanent Super Admin account cannot be edited, suspended, deactivated or replaced from Team & Permissions.'});
     if(staffUserId===req.profile!.id)return res.status(400).json({error:'You cannot change your own staff role, status or permissions.'});
+    assertStaffStatusTransition(before.data.status,input.status);
     assertPermissionsAssignable(req,input.customPermissions);
     const role=await assertRoleAssignable(req,input.roleKey,input.permissionMode,input.customPermissions);
     await ensureLastSuperAdminIsPreserved(staffUserId,input.roleKey,input.status);
     const now=new Date().toISOString();
-    const {data,error}=await supabaseAdmin.from('staff_memberships').update({role_key:role.key,status:input.status,permission_mode:input.permissionMode,job_title:input.jobTitle||null,department:input.department||null,custom_permissions:input.customPermissions,status_reason:input.reason,activated_at:input.status==='active'?before.data.activated_at||now:before.data.activated_at,suspended_at:input.status==='suspended'?now:null,deactivated_at:input.status==='deactivated'?now:null}).eq('user_id',staffUserId).select().single();if(error)throw error;
+    const update={role_key:role.key,status:input.status,permission_mode:input.permissionMode,job_title:input.jobTitle||null,department:input.department||null,custom_permissions:input.customPermissions,status_reason:input.reason,activated_at:input.status==='active'?before.data.activated_at||now:before.data.activated_at,suspended_at:input.status==='suspended'?now:null,deactivated_at:input.status==='deactivated'?now:null};
+    const {data,error}=await supabaseAdmin.from('staff_memberships').update(update).eq('user_id',staffUserId).select().single();if(error)throw error;
+    try{
+      await rotateUserAuthVersion(staffUserId);
+    }catch(sessionError){
+      await supabaseAdmin.from('staff_memberships').update({
+        role_key:before.data.role_key,status:before.data.status,permission_mode:before.data.permission_mode,job_title:before.data.job_title,department:before.data.department,custom_permissions:before.data.custom_permissions,status_reason:before.data.status_reason,activated_at:before.data.activated_at,suspended_at:before.data.suspended_at,deactivated_at:before.data.deactivated_at
+      }).eq('user_id',staffUserId);
+      throw sessionError;
+    }
     await writeAudit(req,{action:'staff_access_changed',entityType:'staff_memberships',entityId:staffUserId,summary:input.reason,beforeData:before.data,afterData:{...data,effective_permissions:effectivePermissions(role,input.customPermissions,input.permissionMode)}});
     res.json(data);
   }catch(error){next(error)}

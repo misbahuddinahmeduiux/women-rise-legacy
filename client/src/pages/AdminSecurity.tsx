@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   BadgeCheck, BriefcaseBusiness, Check, ChevronRight, CircleAlert, Crown, Eye,
   KeyRound, LockKeyhole, Mail, Pencil, Plus, Search, ShieldCheck, UserRoundCheck,
@@ -117,11 +117,40 @@ function StatusBadge({ value }: { value: string }) {
 }
 
 function Modal({ title, subtitle, onClose, children, wide = false }: { title: string; subtitle?: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const titleId=useId();
+  const dialogRef=useRef<HTMLDivElement>(null);
+
+  useEffect(()=>{
+    const previousFocus=document.activeElement as HTMLElement|null;
+    const previousOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+
+    const dialog=dialogRef.current;
+    const focusable=dialog?.querySelector<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])');
+    window.setTimeout(()=>{(focusable||dialog)?.focus();},0);
+
+    const onKeyDown=(event:KeyboardEvent)=>{
+      if(event.key==='Escape'){event.preventDefault();onClose();return;}
+      if(event.key!=='Tab'||!dialog)return;
+      const items=Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')).filter((item)=>item.offsetParent!==null);
+      if(!items.length){event.preventDefault();dialog.focus();return;}
+      const first=items[0],last=items[items.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    };
+
+    document.addEventListener('keydown',onKeyDown);
+    return()=>{
+      document.removeEventListener('keydown',onKeyDown);
+      document.body.style.overflow=previousOverflow;
+      previousFocus?.focus();
+    };
+  },[onClose]);
+
   return <div className="modal-backdrop security-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className={`admin-modal security-modal ${wide ? 'security-modal-wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
-      <button className="modal-close" type="button" aria-label="Close" onClick={onClose}><X /></button>
-      <div className="security-modal-heading"><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
-      {children}
+    <div ref={dialogRef} tabIndex={-1} className={`admin-modal security-modal ${wide ? 'security-modal-wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <header className="security-modal-header"><div className="security-modal-heading"><h2 id={titleId}>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><button className="modal-close" type="button" aria-label="Close dialog" onClick={onClose}><X /></button></header>
+      <div className="security-modal-body">{children}</div>
     </div>
   </div>;
 }
@@ -291,7 +320,9 @@ function StaffAccessForm({ roles, allPermissions, initial, invite, onCancel, onR
   return <form className="security-form security-staff-form" onSubmit={submit}>
     {invite && <><label>Full name<input value={fullName} onChange={(event) => setFullName(event.target.value)} required /></label><label>Work email<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required /></label></>}
     <label>Staff role<select value={roleKey} onChange={(event) => changeRole(event.target.value)} required>{roles.map((item) => <option value={item.key} key={item.key}>{item.name}</option>)}</select><small>{role?.description}</small></label>
-    {!invite && <label>Access status<select value={status} onChange={(event) => setStatus(event.target.value as StaffStatus)}><option value="invited">Invited</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="deactivated">Deactivated</option></select></label>}
+    {!invite && (initial?.status==='invited'
+      ? <div className="security-invitation-state"><Mail /><span><b>Invitation pending</b><small>This record stays invited until the employee accepts it. Normal editing cannot reactivate or reset invitation state.</small></span></div>
+      : <label>Access status<select value={status} onChange={(event) => setStatus(event.target.value as StaffStatus)}><option value="active">Active</option><option value="suspended">Suspended</option><option value="deactivated">Deactivated</option></select></label>)}
     <label>Job title<input value={jobTitle} onChange={(event) => setJobTitle(event.target.value)} /></label><label>Department<input value={department} onChange={(event) => setDepartment(event.target.value)} /></label>
     <fieldset className="security-access-mode wide"><legend>Module access method</legend><label className={permissionMode === 'additive' ? 'selected' : ''}><input type="radio" name="permissionMode" checked={permissionMode === 'additive'} onChange={() => changeMode('additive')} /><span><BriefcaseBusiness /><b>Use role defaults</b><small>The selected role controls access. Optional extras are currently cleared.</small></span></label><label className={permissionMode === 'replace' ? 'selected' : ''}><input type="radio" name="permissionMode" checked={permissionMode === 'replace'} onChange={() => changeMode('replace')} /><span><ShieldCheck /><b>Exact custom module access</b><small>Only the checked permissions will be active.</small></span></label></fieldset>
     {permissionMode === 'replace' && <div className="wide"><div className="security-permission-heading"><div><span className="eyebrow">Module permissions</span><h3>Select exact access</h3><p>{effective.length} permission{effective.length === 1 ? '' : 's'} selected.</p></div><button type="button" className="button ghost button-small" onClick={() => setCustomPermissions((role?.permissions || []).filter((permission) => permission !== '*'))}>Reset to role</button></div><PermissionSelector selected={customPermissions} onChange={setCustomPermissions} available={allPermissions} /></div>}

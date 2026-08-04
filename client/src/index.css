@@ -859,3 +859,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:1180px){.operations-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.operations-studio-hero{grid-template-columns:minmax(0,1fr) 190px}}
 @media(max-width:850px){.operations-studio-hero{grid-template-columns:1fr}.operations-hero-status{min-height:0}.operations-detail-grid{grid-template-columns:1fr}.operations-overview-heading{align-items:flex-start;flex-direction:column}.operations-refresh{width:100%}}
 @media(max-width:620px){.operations-studio-hero{padding:23px!important}.operations-hero-meta{display:grid}.operations-module-nav{grid-template-columns:1fr!important}.operations-module-surface{padding:18px}.operations-kpi-grid{grid-template-columns:1fr}.operations-data-footer{flex-direction:column}}
+
+/* Work Package A: stable staff modal and invitation state */
+.security-modal-backdrop{align-items:flex-start!important;justify-content:center;padding:clamp(12px,3vh,30px) 16px!important;overflow:hidden!important}
+.security-modal{display:grid;grid-template-rows:auto minmax(0,1fr);width:min(620px,100%);max-height:calc(100dvh - clamp(24px,6vh,60px));padding:0!important;overflow:hidden;border-radius:22px;outline:0;box-shadow:0 28px 80px rgba(32,12,35,.28)}
+.security-modal-wide{width:min(980px,100%)}
+.security-modal-header{position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:25px 27px 19px;border-bottom:1px solid #eadfe6;background:linear-gradient(180deg,#fff 0%,#fdfafd 100%)}
+.security-modal-heading{margin:0!important;padding:0!important;min-width:0}
+.security-modal-heading h2{margin:0 0 7px;font-size:clamp(1.45rem,2.7vw,2rem);line-height:1.08}
+.security-modal-heading p{margin:0;color:var(--muted);line-height:1.5}
+.security-modal-header .modal-close{position:static;flex:0 0 auto;margin:0}
+.security-modal-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:22px 27px 27px;scrollbar-gutter:stable}
+.security-modal-body .security-form-actions{position:sticky;z-index:3;bottom:-27px;margin:18px -27px -27px;padding:16px 27px;border-top:1px solid #eadfe6;background:rgba(255,255,255,.96);box-shadow:0 -10px 28px rgba(57,23,59,.07);backdrop-filter:blur(10px)}
+.security-invitation-state{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #ead6a6;border-radius:12px;background:#fff9e9;color:#674c1b}
+.security-invitation-state>svg{flex:0 0 auto;width:19px;height:19px;margin-top:1px}
+.security-invitation-state span,.security-invitation-state b,.security-invitation-state small{display:block}
+.security-invitation-state b{font-size:.76rem}
+.security-invitation-state small{margin-top:3px;font-size:.64rem;line-height:1.45}
+@media(max-width:680px){.security-modal-backdrop{padding:0!important}.security-modal,.security-modal-wide{width:100%;height:100dvh;max-height:100dvh;border-radius:0}.security-modal-header{padding:19px 17px 15px}.security-modal-body{padding:17px}.security-modal-body .security-form-actions{bottom:-17px;margin:18px -17px -17px;padding:14px 17px 17px}.security-staff-form{padding-bottom:2px}}

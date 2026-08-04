@@ -10,6 +10,7 @@ function check(name,fn){try{fn();checks.push({name,ok:true})}catch(error){checks
 
 const migration=read('supabase/migrations/009_security_roles_mentors.sql');
 const migration011=read('supabase/migrations/011_single_super_admin_and_permission_overrides.sql');
+const migration012=read('supabase/migrations/012_auth_version_and_session_invalidation.sql');
 const auth=read('server/src/middleware/auth.ts');
 const access=read('server/src/lib/access.ts');
 const adminSecurity=read('server/src/routes/adminSecurity.ts');
@@ -22,6 +23,13 @@ const phase5=read('client/src/pages/AdminPhase5.tsx');
 const securityUi=read('client/src/pages/AdminSecurity.tsx');
 const adminUi=read('client/src/pages/Admin.tsx');
 const dashboard=read('client/src/pages/Dashboard.tsx');
+const authContext=read('client/src/contexts/AuthContext.tsx');
+const protectedRoute=read('client/src/components/ProtectedRoute.tsx');
+const apiClient=read('client/src/lib/api.ts');
+const sessionSecurity=read('server/src/lib/sessionSecurity.ts');
+const accessRoutes=read('server/src/routes/access.ts');
+const clientCss=read('client/src/index.css');
+const sanitizer=read('scripts/create-sanitized-release.mjs');
 
 check('Profiles revoke broad authenticated updates',()=>assert.match(migration,/revoke update on public\.profiles from authenticated/i));
 check('Only safe profile columns are granted',()=>{assert.match(migration,/grant update \([\s\S]*full_name[\s\S]*languages[\s\S]*\) on public\.profiles to authenticated/i);assert.doesNotMatch(migration,/grant update \([\s\S]*membership_status[\s\S]*\) on public\.profiles/i)});
@@ -50,6 +58,15 @@ check('Only permanent Super Admin can self-approve mentor profile',()=>{assert.m
 check('Team UI provides exact module checkboxes and protected Super Admin display',()=>{assert.match(securityUi,/PERMISSION_GROUPS/);assert.match(securityUi,/Exact custom module access/);assert.match(securityUi,/Protected account/);assert.doesNotMatch(securityUi,/prompt\(/)});
 check('Admin UI resolves an authorized page before rendering',()=>{assert.match(adminUi,/const resolvedActive=/);assert.match(adminUi,/resolvedActive==='overview'/);assert.doesNotMatch(adminUi,/const view=active==='overview'/)});
 check('Dashboard separates staff, mentor and personal membership status',()=>{assert.match(dashboard,/member-access-separation/);assert.match(dashboard,/Staff authority/);assert.match(dashboard,/Personal membership/)});
+
+
+check('Tab return does not trigger a blocking full-page access loader',()=>{assert.match(authContext,/TOKEN_REFRESHED commonly fires/);assert.match(authContext,/visibilitychange/);assert.match(protectedRoute,/waitingForInitialAccess/);assert.doesNotMatch(protectedRoute,/user && accessLoading/)});
+check('Session version migration is server managed',()=>{assert.match(migration012,/add column if not exists auth_version integer not null default 1/);assert.match(migration012,/revoke update \(auth_version\).*anon, authenticated/i)});
+check('Changed access invalidates old app sessions and retries once',()=>{assert.match(auth,/SESSION_REFRESH_REQUIRED/);assert.match(sessionSecurity,/access_version/);assert.match(adminSecurity,/rotateUserAuthVersion\(staffUserId\)/);assert.match(accessRoutes,/rotateUserAuthVersion\(req\.user!\.id\)/);assert.match(apiClient,/refreshSession\(\)/)});
+check('Staff records cannot return to invited through normal editing',()=>{const staffForm=securityUi.slice(securityUi.indexOf('function StaffAccessForm'),securityUi.indexOf('export function TeamPermissionsAdmin'));assert.match(adminSecurity,/STAFF_STATUS_TRANSITIONS/);assert.match(adminSecurity,/cannot be moved back into the invitation state/);assert.doesNotMatch(staffForm,/<option value="invited">Invited<\/option>/)});
+check('Employee modal is scroll-safe and keyboard managed',()=>{assert.match(securityUi,/event\.key!=='Tab'/);assert.match(securityUi,/document\.body\.style\.overflow='hidden'/);assert.match(clientCss,/security-modal-body/);assert.match(clientCss,/height:100dvh/)});
+
+check('Sanitized release excludes secrets, backups and generated files',()=>{for(const item of ['.git','node_modules','dist','backups','release'])assert.match(sanitizer,new RegExp(item.replace('.','\\.')));assert.match(sanitizer,/name\.startsWith\('\.env'\)/);assert.match(sanitizer,/SANITIZED-RELEASE-CONTENTS/)});
 
 const failed=checks.filter((item)=>!item.ok);
 for(const item of checks)console.log(`${item.ok?'PASS':'FAIL'} ${item.name}${item.error?`: ${item.error}`:''}`);

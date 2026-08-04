@@ -5,7 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: User;
-      profile?: { id: string; role: string; full_name: string | null; account_status?: string | null };
+      profile?: { id: string; role: string; full_name: string | null; account_status?: string | null; auth_version?: number | null };
       access?: AccessContext;
       requestId?: string;
     }

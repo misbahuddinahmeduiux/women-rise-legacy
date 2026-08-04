@@ -4,6 +4,8 @@ import { env } from '../config/env.js';
 import { can, loadAccessContext, type Permission } from '../lib/access.js';
 import { supabaseAdmin } from '../lib/supabase.js';
 
+const DEFAULT_AUTH_VERSION=1;
+
 function getBearerToken(req: Request): string | null {
   const header = req.headers.authorization;
   return header?.startsWith('Bearer ') ? header.slice(7).trim() : null;
@@ -23,10 +25,19 @@ async function verifySupabaseUser(token: string, publishableKey: string): Promis
   return await response.json() as User;
 }
 
+function authVersion(value:unknown){
+  const parsed=Number(value);
+  return Number.isInteger(parsed)&&parsed>0?parsed:DEFAULT_AUTH_VERSION;
+}
+
+function sessionVersionMatches(user:User,profileVersion:unknown){
+  return authVersion(user.app_metadata?.access_version)===authVersion(profileVersion);
+}
+
 async function attachIdentity(req: Request, user: User) {
   const { data: profile, error } = await supabaseAdmin
     .from('profiles')
-    .select('id,role,full_name,account_status')
+    .select('id,role,full_name,account_status,auth_version')
     .eq('id', user.id)
     .single();
   if (error || !profile) return false;
@@ -41,7 +52,14 @@ export async function optionalUser(req: Request, _res: Response, next: NextFunct
     const token = getBearerToken(req);
     if (!token) return next();
     const user = await verifySupabaseUser(token, getPublishableKey(req));
-    if (user?.id) await attachIdentity(req, user);
+    if (user?.id) {
+      const attached=await attachIdentity(req,user);
+      if(attached&&!sessionVersionMatches(user,req.profile?.auth_version)){
+        req.user=undefined;
+        req.profile=undefined;
+        req.access=undefined;
+      }
+    }
     next();
   } catch (error) { next(error); }
 }
@@ -53,6 +71,9 @@ export async function requireUser(req: Request, res: Response, next: NextFunctio
     const user = await verifySupabaseUser(token, getPublishableKey(req));
     if (!user?.id) return res.status(401).json({ error: 'Invalid or expired session.' });
     if (!await attachIdentity(req, user)) return res.status(403).json({ error: 'User profile is not configured.' });
+    if(!sessionVersionMatches(user,req.profile?.auth_version)){
+      return res.status(401).json({error:'Your access changed. Refreshing the secure session is required.',code:'SESSION_REFRESH_REQUIRED'});
+    }
     if (req.profile?.account_status && req.profile.account_status !== 'active') {
       return res.status(403).json({ error: 'This account is suspended or deactivated.' });
     }
@@ -67,7 +88,6 @@ export function requireStaff(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Compatibility alias. New routes must also use explicit requirePermission checks.
 export const requireAdmin = requireStaff;
 
 export function requirePermission(permission: Permission) {
